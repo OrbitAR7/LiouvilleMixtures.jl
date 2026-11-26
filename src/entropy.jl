@@ -6,7 +6,7 @@
 # matrix. Every function here is dimension-generic (d = 2 for the shear map T0,
 # d = 6 for the orbit problems).
 #
-# Identities used (derived in docs/derivations.md, milestone M3):
+# Identities used:
 #   For x_t = φ(x₀), x₀ ~ p₀, with a diffeomorphism φ:
 #     H[p_t] = H[p₀] + E[ln |det Dφ(x₀)|]                     (change of variables)
 #     ln p_t(φ(x₀)) = ln p₀(x₀) - ln |det Dφ(x₀)|              (I1 when det Dφ = 1)
@@ -101,7 +101,7 @@ Negentropy of `p_t = φ#N(m₀, P₀)` from its exact covariance `Σt`:
     J = ½ ln det Σt - ½ ln det P0 - E[ln |det Dφ|]
 
 With the default `mean_logdetjac = 0` this is I2, which is exact for
-volume-preserving `φ`. For a coordinate map `g` (equinoctial elements, M5),
+volume-preserving `φ`. For a coordinate map `g` (for example equinoctial elements),
 pass the mean of `ln |det Dg|` over the samples.
 """
 negentropy_from_covariance(Σt::AbstractMatrix, P0::AbstractMatrix; mean_logdetjac::Real = 0) =

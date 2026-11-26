@@ -7,7 +7,7 @@ on volume-preserving orbital flows.
 LiouvilleMixtures
 ```
 
-## Transition tensors (milestone M1)
+## Transition tensors
 
 For `ẋ = f(x)` with `A = ∂f/∂x` and `A2 = ∂²f/∂x²`, the first- and second-order
 state transition tensors obey
@@ -36,7 +36,7 @@ order 1 for an exact `Φ`.
 - Ψ is checked against central differences of Φ (`< 10⁻⁶`) and against jet
   transport with TaylorIntegration.jl (`< 10⁻⁸`).
 
-## Entropy tools (milestone M2)
+## Entropy tools
 
 For a volume-preserving flow and a Gaussian prior, the negentropy of the
 propagated density is

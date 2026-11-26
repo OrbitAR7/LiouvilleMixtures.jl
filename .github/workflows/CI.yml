@@ -32,6 +32,8 @@ jobs:
           julia --project=. .github/install_sources.jl Project.toml
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
+        with:
+          coverage: false   # measured locally; instrumentation made 1.13 3x slower
         env:
           # Monte Carlo propagation is threaded; results do not depend on the count
           JULIA_NUM_THREADS: auto

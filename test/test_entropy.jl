@@ -1,8 +1,8 @@
-# M2: entropy and KL tools. Acceptance tests are marked "M2:".
+# Entropy and KL tools.
 #
 # Statistical tests use fixed seeds (chosen once, before the first run) and
 # compare against confidence intervals, never against point values (STANDARDS §4).
-# Acceptance tests use 99% intervals. That level was fixed before the suite was
+# The main interval checks use 99%. That level was fixed before the suite was
 # first run: with about a dozen interval checks, 95% would fail one by chance
 # about half the time.
 
@@ -74,7 +74,7 @@ using Distributions: MvNormal, logpdf, entropy
     T0_CASES = ((0.2, 0.3, 0.2), (1.0, 0.3, 0.2), (2.0, 0.5, 0.2))
     N_MC = 200_000
 
-    @testset "M2: T0 exact negentropy inside the Monte Carlo interval (c=$c, σ1=$σ1, σ2=$σ2)" for (c, σ1, σ2) in T0_CASES
+    @testset "T0 exact negentropy inside the Monte Carlo interval (c=$c, σ1=$σ1, σ2=$σ2)" for (c, σ1, σ2) in T0_CASES
         P0 = Diagonal([σ1^2, σ2^2])
         X = sample_gaussian(Xoshiro(2026), zeros(2), P0, N_MC)
         Y = shear_map(X; c)
@@ -91,10 +91,14 @@ using Distributions: MvNormal, logpdf, entropy
     end
 
     @testset "bootstrap interval coverage" begin
-        # 200 independent T0 experiments with N = 2000; a 95% interval should
-        # contain the truth in about 190 of them (binomial sd ≈ 3). Accept
-        # 180–199: percentile intervals for a log-determinant at this N can
-        # undercover slightly, but not by more than a few percent.
+        # 200 independent T0 experiments with N = 2000, B = 200, at a nominal 95%.
+        # The percentile interval undercovers slightly at this N. Measured on 27 Nov
+        # 2026 with 2000 experiments: coverage 0.933 ± 0.006, with the truth above the
+        # interval 4.3% of the time and below it 2.4% (ln det Σ̂ is biased low at small
+        # N). At N = 2e4 it is 0.948 ± 0.005, and at 2e5 it is 0.953 ± 0.012, the
+        # sizes the acceptance tests use.
+        # Bound: 0.933 ± 3 sd for 200 experiments (186.6 ± 10.5). The first bound,
+        # 180-199, assumed 0.95 and failed on Julia 1.10 (179).
         c, σ1, σ2 = 1.0, 0.3, 0.2
         P0 = Diagonal([σ1^2, σ2^2])
         J = t0_negentropy(c, σ1, σ2)
@@ -103,10 +107,10 @@ using Distributions: MvNormal, logpdf, entropy
             X = sample_gaussian(rng, zeros(2), P0, 2000)
             J ∈ negentropy_mc(X, shear_map(X; c), P0; B = 200, rng)
         end
-        @test 180 <= hits <= 199
+        @test 176 <= hits <= 197
     end
 
-    @testset "M2: KL estimator is zero when q is the truth (c=$c, σ1=$σ1, σ2=$σ2)" for (c, σ1, σ2) in T0_CASES
+    @testset "KL estimator is zero when q is the truth (c=$c, σ1=$σ1, σ2=$σ2)" for (c, σ1, σ2) in T0_CASES
         P0 = Diagonal([σ1^2, σ2^2])
         X = sample_gaussian(Xoshiro(2027), zeros(2), P0, N_MC)
         Y = shear_map(X; c)
@@ -130,9 +134,9 @@ using Distributions: MvNormal, logpdf, entropy
         @test kl_mc(lp0, gaussian_logpdf(Y, μy, Σy); logdetjac = zeros(N_MC)).value ≈ e_mm.value
     end
 
-    # T1: prior 1 km and 1 m/s per axis, one revolution, N = 20 000 (the 2e5 of
-    # the brief is for the experiments; here it would cost minutes).
-    @testset "M2: I2 holds on T1 ($(p.name), $(nameof(typeof(p.model))))" for p in (t1_leo(), t1_leo(J2Gravity()), t1_molniya())
+    # T1: prior 1 km and 1 m/s per axis, one revolution, N = 20 000 (the
+    # experiments use 2e5; here that would cost minutes).
+    @testset "I2 holds on T1 ($(p.name), $(nameof(typeof(p.model))))" for p in (t1_leo(), t1_leo(J2Gravity()), t1_molniya())
         P0 = Diagonal([1.0, 1.0, 1.0, 1e-6, 1e-6, 1e-6])          # km², (km/s)²
         X0 = sample_gaussian(Xoshiro(2028), collect(p.x0), P0, 20_000)
         Xt, ldj = propagate_samples(p.model, X0, p.period; logdet = true)

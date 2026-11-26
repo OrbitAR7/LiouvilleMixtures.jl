@@ -1,5 +1,5 @@
 # =============================================================================
-# Test problems T1 and T2 of the brief (T0 and T3 arrive with M2 and E6)
+# Test problems: T0 shear map, T1 Kepler/J2 orbits, T2 9:2 NRHO
 # =============================================================================
 
 """
@@ -33,8 +33,7 @@ end
 """
     t1_leo(model = TwoBody())
 
-T1 LEO: a = 7000 km, e = 0.01, starting at perigee. The brief fixes only `a`
-and `e`. The other elements are chosen here: i = 51.6°, Ω = 0, ω = 0, ν = 0.
+T1 LEO: a = 7000 km, e = 0.01, starting at perigee. The other elements are i = 51.6°, Ω = 0, ω = 0, ν = 0.
 `model` is `TwoBody()` or `J2Gravity()`. The period is the Keplerian one.
 """
 t1_leo(model::Union{TwoBody,J2Gravity} = TwoBody()) =
@@ -43,7 +42,7 @@ t1_leo(model::Union{TwoBody,J2Gravity} = TwoBody()) =
 """
     t1_molniya(model = TwoBody())
 
-T1 Molniya: a = 26 554 km, e = 0.72, i = 63.4° (from the brief). Chosen here:
+T1 Molniya: a = 26 554 km, e = 0.72, i = 63.4°. Also:
 ω = 270° (apogee over the northern hemisphere), Ω = 0, starting at perigee
 (ν = 0).
 """
@@ -93,7 +92,7 @@ end
 """
     shear_map(X; c)
 
-T0 of the brief: `y₁ = x₁`, `y₂ = x₂ + c x₁²`, applied to each column of the
+T0, a volume-preserving shear: `y₁ = x₁`, `y₂ = x₂ + c x₁²`, applied to each column of the
 2 × N matrix `X` (or to a 2-vector). `det Dφ = 1` exactly.
 """
 shear_map(x::AbstractVector; c::Real) = [x[1], x[2] + c * x[1]^2]

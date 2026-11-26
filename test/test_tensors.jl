@@ -1,5 +1,5 @@
-# M1 acceptance tests. Tolerances are the brief's. Measured values are in
-# planning/STATUS.md.
+# Transition tensors: det Φ, the symplectic form, and Ψ against two independent
+# routes (central differences of Φ and jet transport).
 #
 # Ψ comparisons use the dimensionless tensor Ψ̃_ijk = Ψ_ijk D_j D_k / D_i
 # (D = problem scales: a and √(μ/a) for Kepler/J2, 1 for the CR3BP) and the
@@ -22,15 +22,15 @@
         @test sol.t ≈ ts
         Φ, Ψ = sol.Φ[end], sol.Ψ[end]
 
-        # M1: det Φ - 1 below 1e-10 over one revolution (40 points along it)
+        # det Φ - 1 below 1e-10 over one revolution (40 points along it)
         @test maximum(Φt -> abs(det(Φt) - 1), sol.Φ) < 1e-10
 
-        # M1: symplectic residual below 1e-9, in the form that is correct for
-        # the model's coordinates (see symplectic_form), and in the
-        # dimensionless state (owner-approved 26 Nov 2026: the brief does not
-        # say which units). In km and km/s the Molniya residual has a roundoff
-        # floor of 3e-9 to 2e-8 that no tolerance removes (symplectic_residual
-        # docstring); LEO passes in either form.
+        # symplectic residual below 1e-9, in the form that is correct for the
+        # model's coordinates (see symplectic_form), and in the dimensionless
+        # state: an absolute tolerance on mixed units depends on the units. In km
+        # and km/s the Molniya residual has a roundoff floor of 3e-9 to 2e-8 that
+        # no tolerance removes (see the symplectic_residual docstring); LEO
+        # passes in either form.
         @test maximum(Φt -> symplectic_residual(p.model, Φt; scales = p.scales), sol.Φ) < 1e-9
         p.name == "T1 LEO" && @test maximum(Φt -> symplectic_residual(p.model, Φt), sol.Φ) < 1e-9
 
@@ -40,10 +40,10 @@
         Ψs = scaled(Ψ, p.scales)
         @test norm(Ψs - permutedims(Ψs, (1, 3, 2))) <= 1e-14 * norm(Ψs)
 
-        # M1: Ψ against central differences of Φ, 1e-6 relative
+        # Ψ against central differences of Φ, 1e-6 relative
         @test relerr(scaled(fd_psi(p, p.period, fd_step(p)), p.scales), Ψs) < 1e-6
 
-        # M1: Ψ against jet transport (TaylorIntegration), 1e-8 relative
+        # Ψ against jet transport (TaylorIntegration), 1e-8 relative
         Φj, Ψj, tj = jet_tensors(p, p.period)
         @test tj ≈ p.period
         @test relerr(scaled(Φ, p.scales), scaled(Φj, p.scales)) < 1e-8
@@ -57,7 +57,7 @@
     end
 
     @testset "the standard J is the wrong form for the rotating frame" begin
-        # documents the correction to the brief's M1 test: ΦᵀJΦ = J fails for the
+        # ΦᵀJΦ = J is the wrong test in rotating coordinates: it fails for the
         # CR3BP in (r, v) even though Φ is exact
         Φ = propagate_tensors(NRHO.model, NRHO.x0, NRHO.period; order = 1).Φ[end]
         J = symplectic_form(TwoBody())

@@ -1,6 +1,6 @@
 # Vector fields and their derivatives: analytic forms against ForwardDiff,
 # J2 against the gradient of its potential, and the volume-preservation and
-# symplectic structure that M1 relies on.
+# symplectic structure that the tensor propagation relies on.
 
 # random states near each test orbit (fixed seed)
 function sample_states(p::TestProblem, n; seed = 1)

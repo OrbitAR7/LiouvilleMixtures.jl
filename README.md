@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/OrbitAR7/LiouvilleMixtures.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/OrbitAR7/LiouvilleMixtures.jl/actions/workflows/CI.yml)
 
-**Status: in development. Milestones M1 (dynamics and transition tensors) and M2 (entropy and KL tools) are implemented; no study results yet.**
+**Status: in development.** The dynamics, transition tensors and entropy/KL tools are implemented and tested. There are no study results yet.
 
 ## Problems
 
@@ -17,7 +17,7 @@ volume, and refitting a Gaussian can only add volume. This repository asks three
 
 ## Methods, Findings, Verification, Gaps
 
-Filled in as milestones land.
+To be written as the study results come in.
 
 ## Reproduce
 
