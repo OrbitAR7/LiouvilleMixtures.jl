@@ -33,3 +33,37 @@ t1_molniya
 nrho_9_2
 t2_nrho
 ```
+
+## Entropy, negentropy and KL divergence
+
+```@docs
+gaussian_entropy
+gaussian_logpdf
+sample_gaussian
+sample_mean_cov
+negentropy_from_covariance
+negentropy_mc
+kl_mc
+MCEstimate
+bootstrap
+mean_estimate
+propagate_samples
+```
+
+## Gauss-Hermite quadrature
+
+```@docs
+gauss_hermite
+gauss_hermite_tensor
+quadrature_mean_cov
+```
+
+## T0: shear map
+
+```@docs
+shear_map
+shear_logpdf
+t0_negentropy
+t0_negentropy_leading
+t0_kl_to_prior
+```

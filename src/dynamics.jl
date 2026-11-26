@@ -126,9 +126,19 @@ function state_jacobian(m::TwoBody, x::SVector{6,T}) where {T}
     r = SVector(x[1], x[2], x[3])
     r² = dot(r, r)
     r³ = r² * sqrt(r²)
-    G = m.μ * (3 * (r * r') / (r² * r³) - SMatrix{3,3,T}(I) / r³)
-    Z = zero(SMatrix{3,3,T})
-    return [Z SMatrix{3,3,T}(I); G Z]
+    a = 3m.μ / (r² * r³)
+    b = m.μ / r³
+    # built entry by entry (column-major): block concatenation allocates here
+    return SMatrix{6,6,T}(ntuple(Val(36)) do n
+        i, j = mod1(n, 6), cld(n, 6)
+        if i <= 3
+            return i + 3 == j ? one(T) : zero(T)        # ∂ṙ/∂v = I
+        elseif j <= 3
+            return a * r[i-3] * r[j] - (i - 3 == j ? b : zero(T))   # ∂v̇/∂r = G
+        else
+            return zero(T)
+        end
+    end)
 end
 
 state_jacobian(m::CR3BP, x::SVector{6}) = cr3bp_jacobian(x, m.system.μ)

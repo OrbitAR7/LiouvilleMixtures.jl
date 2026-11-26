@@ -85,3 +85,55 @@ function t2_nrho(system::CR3BPSystem = EARTH_MOON)
     o = nrho_9_2(system)
     return TestProblem("T2 NRHO 9:2", CR3BP(system), o.x0, o.period, SVector{6}(ones(6)))
 end
+
+# -----------------------------------------------------------------------------
+# T0: volume-preserving shear map
+# -----------------------------------------------------------------------------
+
+"""
+    shear_map(X; c)
+
+T0 of the brief: `y₁ = x₁`, `y₂ = x₂ + c x₁²`, applied to each column of the
+2 × N matrix `X` (or to a 2-vector). `det Dφ = 1` exactly.
+"""
+shear_map(x::AbstractVector; c::Real) = [x[1], x[2] + c * x[1]^2]
+shear_map(X::AbstractMatrix; c::Real) = vcat(X[1:1, :], X[2:2, :] .+ c .* X[1:1, :] .^ 2)
+
+"""
+    shear_logpdf(Y; c, σ1, σ2) -> Vector
+
+Exact log-density of `y = shear_map(x; c)` with `x ~ N(0, diag(σ1², σ2²))`:
+`ln N(y₁; 0, σ1²) + ln N(y₂ - c y₁²; 0, σ2²)`. The map is inverted exactly and
+its Jacobian is 1.
+"""
+function shear_logpdf(Y::AbstractMatrix; c::Real, σ1::Real, σ2::Real)
+    return [-log(2π) - log(σ1) - log(σ2) - Y[1, j]^2 / (2σ1^2) -
+            (Y[2, j] - c * Y[1, j]^2)^2 / (2σ2^2) for j in axes(Y, 2)]
+end
+
+"""
+    t0_negentropy(c, σ1, σ2)
+
+Exact negentropy of the T0 pushforward: `½ ln(1 + 2c²σ1⁴/σ2²)`. The output
+covariance is `diag(σ1², σ2² + 2c²σ1⁴)`, and I2 holds because `det Dφ = 1`.
+"""
+t0_negentropy(c::Real, σ1::Real, σ2::Real) = log1p(2c^2 * σ1^4 / σ2^2) / 2
+
+"""
+    t0_negentropy_leading(c, σ1, σ2)
+
+Leading-order T0 negentropy for small `c σ1²/σ2`: `c² σ1⁴ / σ2²`.
+"""
+t0_negentropy_leading(c::Real, σ1::Real, σ2::Real) = c^2 * σ1^4 / σ2^2
+
+"""
+    t0_kl_to_prior(c, σ1, σ2)
+
+Exact `KL(p_y ‖ N(0, diag(σ1², σ2²)))` for T0. That Gaussian is the linearized
+prediction, since `Dφ(0) = I`. Value: `3c²σ1⁴ / (2σ2²)`. Derivation:
+
+    E[ln p₀(x) - ln N(y; 0, P₀)] = E[(y₂² - x₂²)] / (2σ2²)
+                                 = E[2c x₁² x₂ + c² x₁⁴] / (2σ2²)
+                                 = 3c²σ1⁴ / (2σ2²)
+"""
+t0_kl_to_prior(c::Real, σ1::Real, σ2::Real) = 3c^2 * σ1^4 / (2σ2^2)

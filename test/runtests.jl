@@ -18,4 +18,5 @@ const NRHO = t2_nrho()
     end
     include("test_dynamics.jl")
     include("test_tensors.jl")
+    include("test_entropy.jl")
 end
