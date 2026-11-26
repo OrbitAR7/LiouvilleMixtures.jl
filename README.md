@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/OrbitAR7/LiouvilleMixtures.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/OrbitAR7/LiouvilleMixtures.jl/actions/workflows/CI.yml)
 
-**Status: in development (milestone M0, package skeleton). No results yet.**
+**Status: in development. Milestone M1 (dynamics and transition tensors) is implemented; no study results yet.**
 
 ## Problems
 
@@ -42,4 +42,5 @@ julia --project=docs docs/make.jl
 
 - [OrbitalMechanics.jl](https://github.com/OrbitAR7/orbital-mechanics-jl), pinned to commit
   `98a43ae` in `Project.toml`. It supplies the CR3BP equations of motion and the 9:2 NRHO.
-- StaticArrays.
+- OrdinaryDiffEqVerner (the Vern9 integrator), ForwardDiff, StaticArrays.
+- Test only: TaylorIntegration and TaylorSeries (jet transport, an independent check of the tensors).

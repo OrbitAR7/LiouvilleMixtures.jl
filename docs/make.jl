@@ -5,7 +5,7 @@ makedocs(;
     sitename = "LiouvilleMixtures.jl",
     modules = [LiouvilleMixtures],
     format = Documenter.HTML(prettyurls = get(ENV, "CI", nothing) == "true", edit_link = nothing),
-    pages = ["Home" => "index.md"],
+    pages = ["Home" => "index.md", "API" => "api.md"],
     remotes = nothing,   # no public remote yet; set when the repository is published
     checkdocs = :exports,
 )
