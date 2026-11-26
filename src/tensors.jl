@@ -147,6 +147,17 @@ function propagate_state(model::DynamicsModel, x0::AbstractVector, t::Real;
 end
 
 """
+    symplectic_inverse(model, Φ)
+
+`Φ⁻¹` from the symplectic identity `Φᵀ Ω Φ = Ω`, that is `Φ⁻¹ = Ω⁻¹ Φᵀ Ω`.
+It is exact for a transition matrix of `model` and needs no linear solve. That
+matters because Φ can be badly conditioned: on Molniya over one revolution
+cond(Φ) ≈ 6×10¹¹ in km and km/s.
+"""
+symplectic_inverse(model::DynamicsModel, Φ::AbstractMatrix) =
+    (Ω = symplectic_form(model); Ω \ (Φ' * Ω))
+
+"""
     symplectic_residual(model, Φ; scales = nothing)
 
 `maximum |Φᵀ Ω Φ - Ω|` with `Ω = symplectic_form(model)`. It is zero for an

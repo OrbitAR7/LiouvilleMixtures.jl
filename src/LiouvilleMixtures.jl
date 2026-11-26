@@ -33,18 +33,21 @@ using OrbitalMechanics
 export DynamicsModel, TwoBody, J2Gravity, CR3BP
 export vector_field, potential, state_jacobian, state_hessian
 export symplectic_form, canonical_transform
-export TransitionTensors, propagate_tensors, propagate_state, symplectic_residual
+export TransitionTensors, propagate_tensors, propagate_state, symplectic_residual, symplectic_inverse
 export TestProblem, t1_leo, t1_molniya, t2_nrho, nrho_9_2
 export shear_map, shear_logpdf, t0_negentropy, t0_negentropy_leading, t0_kl_to_prior
 export gaussian_entropy, gaussian_logpdf, sample_gaussian, sample_mean_cov
 export negentropy_from_covariance, MCEstimate, bootstrap, mean_estimate
 export negentropy_mc, kl_mc, propagate_samples
 export gauss_hermite, gauss_hermite_tensor, quadrature_mean_cov
+export whitened_tensor, negentropy_leading, third_cumulant, negentropy_edgeworth
+export volume_trace, predicted_negentropy
 
 include("dynamics.jl")
 include("tensors.jl")
 include("test_problems.jl")
 include("entropy.jl")
 include("quadrature.jl")
+include("predictor.jl")
 
 end # module

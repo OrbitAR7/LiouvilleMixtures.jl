@@ -58,3 +58,18 @@ estimation.
 [`gauss_hermite`](@ref) builds the Golub-Welsch rule. Its tensor product is a
 deterministic reference for `Σ_t` when the non-Gaussianity is too small for
 Monte Carlo.
+
+## Negentropy predictor
+
+[`predicted_negentropy`](@ref) evaluates the leading-order negentropy
+`J ≈ ¼ΣB² + ½ΣB_abcB_bac = ‖κ₃‖²/12` from the whitened second-order transition
+tensor. The page [Derivations](derivations.md) derives it two ways. Both are
+compared against a converged Gauss-Hermite reference across a sweep of prior
+sizes:
+
+- The relative error grows as the square of the prior size.
+- Once the predictor fails it always overestimates, because the true
+  negentropy saturates.
+- How quickly it fails depends strongly on where along the orbit the epoch
+  falls. The same 1 km / 1 m/s prior on the Molniya orbit carries 0.19 nats
+  at apogee and 13 nats at perigee.

@@ -90,7 +90,7 @@ using Distributions: MvNormal, logpdf, entropy
         @test es.se < ee.se
     end
 
-    @testset "bootstrap interval coverage" begin
+    FULL_TESTS && @testset "bootstrap interval coverage" begin
         # 200 independent T0 experiments with N = 2000, B = 200, at a nominal 95%.
         # The percentile interval undercovers slightly at this N. Measured on 27 Nov
         # 2026 with 2000 experiments: coverage 0.933 ± 0.006, with the truth above the
@@ -136,7 +136,7 @@ using Distributions: MvNormal, logpdf, entropy
 
     # T1: prior 1 km and 1 m/s per axis, one revolution, N = 20 000 (the
     # experiments use 2e5; here that would cost minutes).
-    @testset "I2 holds on T1 ($(p.name), $(nameof(typeof(p.model))))" for p in (t1_leo(), t1_leo(J2Gravity()), t1_molniya())
+    @testset "I2 holds on T1 ($(p.name), $(nameof(typeof(p.model))))" for p in (FULL_TESTS ? (t1_leo(), t1_leo(J2Gravity()), t1_molniya()) : (t1_leo(), t1_molniya()))
         P0 = Diagonal([1.0, 1.0, 1.0, 1e-6, 1e-6, 1e-6])          # km², (km/s)²
         X0 = sample_gaussian(Xoshiro(2028), collect(p.x0), P0, 20_000)
         Xt, ldj = propagate_samples(p.model, X0, p.period; logdet = true)

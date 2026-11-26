@@ -46,3 +46,21 @@ function jet_tensors(p::TestProblem, t; order = 28, abstol = 1e-22)
          for i in 1:6, j in 1:6, k in 1:6]
     return Φ, Ψ, sol.t[end]
 end
+
+"""
+Negentropy of N(x0, P0) propagated for time t, from an n⁶-point Gauss-Hermite rule.
+The output is whitened with the exact linear map, η = S0⁻¹ Φ⁻¹ (x_t - φ(x0)), so the
+covariance is well conditioned whatever the units (I2 in whitened coordinates).
+"""
+function gh_negentropy(p::TestProblem, t, P0; n = 5)
+    Ξ, W = gauss_hermite_tensor(6, n)
+    S0 = Matrix(cholesky(Symmetric(Matrix(P0))).L)
+    sol = propagate_tensors(p.model, p.x0, t; order = 1)
+    Φinv = symplectic_inverse(p.model, sol.Φ[end])
+    Y = propagate_samples(p.model, p.x0 .+ S0 * Ξ, t)
+    H = S0 \ (Φinv * (Y .- sol.x[end]))
+    return negentropy_from_covariance(quadrature_mean_cov(H, W)[2], I(6))
+end
+
+"Prior with position σ = s km (or s·σr) and velocity σ = s·σv on each axis."
+scaled_prior(s, σr, σv) = Diagonal([fill((s * σr)^2, 3); fill((s * σv)^2, 3)])

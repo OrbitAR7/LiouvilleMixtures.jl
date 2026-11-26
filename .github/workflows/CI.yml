@@ -5,6 +5,8 @@ on:
     tags: ['*']
   pull_request:
   workflow_dispatch:
+  schedule:
+    - cron: '0 6 * * 1'    # weekly full-tier run
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -37,6 +39,8 @@ jobs:
         env:
           # Monte Carlo propagation is threaded; results do not depend on the count
           JULIA_NUM_THREADS: auto
+          # heavier statistical checks: weekly and on manual dispatch
+          LIOUVILLE_FULL_TESTS: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
   docs:
     name: Documentation
     runs-on: ubuntu-latest

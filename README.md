@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/OrbitAR7/LiouvilleMixtures.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/OrbitAR7/LiouvilleMixtures.jl/actions/workflows/CI.yml)
 
-**Status: in development.** The dynamics, transition tensors and entropy/KL tools are implemented and tested. There are no study results yet.
+**Status: in development.** The dynamics, transition tensors, entropy/KL tools and the leading-order negentropy predictor are implemented and tested ([derivations](docs/src/derivations.md)). The study experiments are not yet run.
 
 ## Problems
 
@@ -25,7 +25,8 @@ To be written as the study results come in.
 JULIA_NUM_THREADS=auto julia --project=. -e 'using Pkg; Pkg.instantiate(); Pkg.test()'
 ```
 
-The suite takes about 2 minutes with 4 threads. Monte Carlo propagation is
+The suite takes about 2 minutes with 4 threads. Set `LIOUVILLE_FULL_TESTS=true` to add
+the heavier statistical checks (CI runs them weekly). Monte Carlo propagation is
 threaded, and the results do not depend on the thread count.
 
 Julia 1.10 (LTS) or later. On 1.10, install the pinned git dependencies first:

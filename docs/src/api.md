@@ -22,6 +22,7 @@ TransitionTensors
 propagate_tensors
 propagate_state
 symplectic_residual
+symplectic_inverse
 ```
 
 ## Test problems
@@ -66,4 +67,15 @@ shear_logpdf
 t0_negentropy
 t0_negentropy_leading
 t0_kl_to_prior
+```
+
+## Negentropy predictor
+
+```@docs
+whitened_tensor
+negentropy_leading
+third_cumulant
+negentropy_edgeworth
+volume_trace
+predicted_negentropy
 ```
