@@ -1,0 +1,27 @@
+name = "LiouvilleMixtures"
+uuid = "83a4b697-eae7-4d01-a108-9a09ef22cb60"
+version = "0.1.0-DEV"
+authors = ["Hamoud Alshammari"]
+
+[deps]
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+OrbitalMechanics = "250cb768-ee57-4cca-8e52-7aae82f4f625"
+StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
+
+# The owner's own packages are not registered. Each is pinned to a commit here.
+# Julia >= 1.11 reads this table directly; on 1.10 CI runs .github/install_sources.jl,
+# which adds the same url and rev.
+[sources]
+OrbitalMechanics = {url = "https://github.com/OrbitAR7/orbital-mechanics-jl", rev = "98a43ae50553149c8d9322e7768f2193ee23c4d2"}
+
+[compat]
+LinearAlgebra = "1"
+OrbitalMechanics = "1"
+StaticArrays = "1"
+julia = "1.10"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]

@@ -1,0 +1,9 @@
+[deps]
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+LiouvilleMixtures = "83a4b697-eae7-4d01-a108-9a09ef22cb60"
+
+[sources]
+LiouvilleMixtures = {path = ".."}
+
+[compat]
+Documenter = "1"

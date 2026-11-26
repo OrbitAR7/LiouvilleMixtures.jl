@@ -1,0 +1,47 @@
+name: CI
+on:
+  push:
+    branches: [main]
+    tags: ['*']
+  pull_request:
+  workflow_dispatch:
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  test:
+    name: Julia ${{ matrix.version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        version: ['lts', '1']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: julia-actions/setup-julia@v2
+        with:
+          version: ${{ matrix.version }}
+      - uses: julia-actions/cache@v2
+      # Manifest.toml is resolved on the current release. The LTS ignores
+      # [sources], so it drops the manifest and re-adds the pinned git
+      # dependencies from Project.toml.
+      - name: Install pinned sources (LTS)
+        if: matrix.version == 'lts'
+        run: |
+          rm -f Manifest.toml
+          julia --project=. .github/install_sources.jl Project.toml
+      - uses: julia-actions/julia-buildpkg@v1
+      - uses: julia-actions/julia-runtest@v1
+  docs:
+    name: Documentation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: julia-actions/setup-julia@v2
+        with:
+          version: '1'
+      - uses: julia-actions/cache@v2
+      - name: Install docs environment
+        run: julia --project=docs -e 'using Pkg; Pkg.instantiate()'
+      - name: Build docs
+        run: julia --project=docs docs/make.jl
