@@ -36,10 +36,11 @@ using PrecompileTools: @setup_workload, @compile_workload
 export DynamicsModel, TwoBody, J2Gravity, CR3BP
 export vector_field, potential, state_jacobian, state_hessian
 export symplectic_form, canonical_transform
-export TransitionTensors, propagate_tensors, propagate_state, symplectic_residual, symplectic_inverse
+export TransitionTensors, propagate_tensors, propagate_state, propagate_trajectory, symplectic_residual, symplectic_inverse
+export cartesian_to_equinoctial, equinoctial_to_cartesian, equinoctial_logdetjac, unwrap_angle
 export TestProblem, t1_leo, t1_molniya, t2_nrho, nrho_9_2
 export shear_map, shear_logpdf, t0_negentropy, t0_negentropy_leading, t0_kl_to_prior
-export gaussian_entropy, gaussian_logpdf, sample_gaussian, sample_mean_cov
+export gaussian_entropy, gaussian_logpdf, sample_gaussian, sample_mean_cov, logdet_sample_cov, logdet_quadrature_cov
 export negentropy_from_covariance, MCEstimate, bootstrap, mean_estimate
 export negentropy_mc, kl_mc, propagate_samples
 export gauss_hermite, gauss_hermite_tensor, quadrature_mean_cov
@@ -55,6 +56,7 @@ export Policy, LinearPropagation, ScheduledRefit, EntropyTrigger, HorizonSplit, 
 include("dynamics.jl")
 include("tensors.jl")
 include("test_problems.jl")
+include("elements.jl")
 include("entropy.jl")
 include("quadrature.jl")
 include("measurements.jl")

@@ -94,6 +94,49 @@ function sample_mean_cov(X::AbstractMatrix, w = nothing)
 end
 
 """
+    logdet_sample_cov(X, w = nothing)
+
+`ln det` of the sample covariance of the columns of `X`, with the same
+normalization as [`sample_mean_cov`](@ref): `1/(N - 1)`, or `1/(Σw - 1)` with
+counts `w`.
+
+It is computed from a QR factorization of the centred (and √w-weighted) data
+rather than from the covariance matrix, which avoids squaring the condition
+number. The propagated clouds need that: at the Molniya perigee their
+covariance is too ill-conditioned for a Cholesky or Bunch-Kaufman logdet.
+"""
+function logdet_sample_cov(X::AbstractMatrix, w = nothing)
+    d, N = size(X)
+    if w === nothing
+        μ = vec(sum(X; dims = 2)) / N
+        D = (X .- μ)'
+        norm = N - 1
+    else
+        keep = findall(!iszero, w)
+        Xk, wk = X[:, keep], w[keep]
+        W = sum(wk)
+        μ = Xk * wk / W
+        D = ((Xk .- μ) .* sqrt.(wk)')'
+        norm = W - 1
+    end
+    R = qr(D).R
+    return 2 * sum(log ∘ abs, diag(R)) - d * log(norm)
+end
+
+"""
+    logdet_quadrature_cov(Y, w)
+
+`ln det` of the covariance of the columns of `Y` under quadrature weights `w`
+(non-negative, summing to 1), with no `N - 1` correction. QR-based, like
+[`logdet_sample_cov`](@ref).
+"""
+function logdet_quadrature_cov(Y::AbstractMatrix, w::AbstractVector)
+    μ = Y * w
+    R = qr(((Y .- μ) .* sqrt.(w)')').R
+    return 2 * sum(log ∘ abs, diag(R))
+end
+
+"""
     negentropy_from_covariance(Σt, P0; mean_logdetjac = 0)
 
 Negentropy of `p_t = φ#N(m₀, P₀)` from its exact covariance `Σt`:
@@ -199,12 +242,13 @@ function negentropy_mc(X0::AbstractMatrix, Xt::AbstractMatrix, P0::AbstractMatri
     size(X0) == size(Xt) || throw(DimensionMismatch("X0 and Xt must have the same size"))
     prior in (:sample, :exact) || throw(ArgumentError("prior must be :sample or :exact"))
     N = size(Xt, 2)
+    ld_P0 = logdet(Symmetric(Matrix(P0)))
     function stat(w)
-        _, Σt = sample_mean_cov(Xt, w)
-        Σ0 = prior === :exact ? P0 : sample_mean_cov(X0, w)[2]
+        ld_t = logdet_sample_cov(Xt, w)
+        ld_0 = prior === :exact ? ld_P0 : logdet_sample_cov(X0, w)
         ldj = logdetjac === nothing ? 0.0 :
               (w === nothing ? sum(logdetjac) / N : dot(w, logdetjac) / sum(w))
-        return negentropy_from_covariance(Σt, Σ0; mean_logdetjac = ldj)
+        return (ld_t - ld_0) / 2 - ldj
     end
     return bootstrap(stat, N; B, level, rng)
 end
@@ -254,4 +298,25 @@ function propagate_samples(model::DynamicsModel, X0::AbstractMatrix, t::Real;
         end
     end
     return logdet ? (Xt, ldj) : Xt
+end
+
+"""
+    propagate_samples(model, X0, ts::AbstractVector; reltol = 1e-13, abstol = 1e-13)
+        -> Vector{Matrix}
+
+Propagate each column of the 6 × N matrix `X0` to every one of the sorted times
+`ts`, with one integration per sample. Element `k` of the result is the cloud
+at `ts[k]`. Samples are spread over `Threads.nthreads()` threads.
+"""
+function propagate_samples(model::DynamicsModel, X0::AbstractMatrix, ts::AbstractVector;
+                           reltol::Real = 1e-13, abstol::Real = 1e-13)
+    size(X0, 1) == 6 || throw(DimensionMismatch("X0 must be 6 × N"))
+    out = [similar(X0, Float64) for _ in ts]
+    Threads.@threads for j in axes(X0, 2)
+        traj = propagate_trajectory(model, view(X0, :, j), ts; reltol, abstol)
+        for k in eachindex(ts)
+            out[k][:, j] = traj[k]
+        end
+    end
+    return out
 end

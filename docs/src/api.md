@@ -21,6 +21,7 @@ canonical_transform
 TransitionTensors
 propagate_tensors
 propagate_state
+propagate_trajectory
 symplectic_residual
 symplectic_inverse
 ```
@@ -42,6 +43,8 @@ gaussian_entropy
 gaussian_logpdf
 sample_gaussian
 sample_mean_cov
+logdet_sample_cov
+logdet_quadrature_cov
 negentropy_from_covariance
 negentropy_mc
 kl_mc
@@ -49,6 +52,15 @@ MCEstimate
 bootstrap
 mean_estimate
 propagate_samples
+```
+
+## Modified equinoctial elements
+
+```@docs
+cartesian_to_equinoctial
+equinoctial_to_cartesian
+equinoctial_logdetjac
+unwrap_angle
 ```
 
 ## Gauss-Hermite quadrature

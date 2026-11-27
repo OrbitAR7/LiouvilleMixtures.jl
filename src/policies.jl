@@ -241,7 +241,7 @@ function propagate_policy(p::ScheduledRefit, model::DynamicsModel, prior::Gaussi
         idx = findall(t -> ts < t <= te, times)
         targets = unique(vcat(times[idx], te))
         X = m .+ _principal_sqrt(P) * Ξ
-        clouds = _flow_points(model, X, diff(vcat(ts, targets)))
+        clouds = propagate_samples(model, X, targets .- ts)     # one integration per node
         for (k, tk) in enumerate(targets)
             μk, Pk = _rule_moments(clouds[k], wm, wc)
             for i in idx

@@ -147,6 +147,23 @@ function propagate_state(model::DynamicsModel, x0::AbstractVector, t::Real;
 end
 
 """
+    propagate_trajectory(model, x0, ts; reltol = 1e-13, abstol = 1e-13) -> Vector{SVector{6}}
+
+The states `φ_t(x0)` at the sorted output times `ts` (in the model's time unit),
+from one integration with dense output saved at `ts`.
+"""
+function propagate_trajectory(model::DynamicsModel, x0::AbstractVector, ts::AbstractVector;
+                              reltol::Real = 1e-13, abstol::Real = 1e-13)
+    issorted(ts) && all(>=(0), ts) || throw(ArgumentError("ts must be sorted and non-negative"))
+    f(u, p, s) = vector_field(p, u)
+    prob = ODEProblem{false}(f, SVector{6,Float64}(x0), (0.0, float(last(ts))), model)
+    sol = solve(prob, Vern9(); reltol, abstol, saveat = collect(float.(ts)))
+    SciMLBase.successful_retcode(sol) ||
+        error("propagate_trajectory: integration failed with retcode $(sol.retcode)")
+    return sol.u
+end
+
+"""
     symplectic_inverse(model, Φ)
 
 `Φ⁻¹` from the symplectic identity `Φᵀ Ω Φ = Ω`, that is `Φ⁻¹ = Ω⁻¹ Φᵀ Ω`.

@@ -43,6 +43,26 @@ using Distributions: MvNormal, logpdf, entropy
         @test μw ≈ μr && Σw ≈ Σr
     end
 
+    @testset "QR log-determinant of a sample covariance" begin
+        rng = Xoshiro(13)
+        X = randn(rng, 6, 5000)
+        @test logdet_sample_cov(X) ≈ logdet(Matrix(sample_mean_cov(X)[2])) rtol = 1e-12
+        w = rand(rng, 0:3, 5000)
+        @test logdet_sample_cov(X, w) ≈ logdet(Matrix(sample_mean_cov(X, w)[2])) rtol = 1e-12
+        Ξ, W = gauss_hermite_tensor(2, 4)
+        Y = [1.0 0.3; 0.0 2.0] * Ξ
+        @test logdet_quadrature_cov(Y, W) ≈ logdet(Matrix(quadrature_mean_cov(Y, W)[2])) rtol = 1e-12
+        # A linear map shifts it by exactly 2 ln |det A|. Measured on 27 Nov 2026:
+        #   cond(A) = 1e6:  QR error 3e-11, covariance-matrix route error 7e-5
+        #   cond(A) = 1e12: QR error 4e-6, covariance-matrix route fails (indefinite)
+        #   cond(A) = 1e16: both fail
+        Q = Matrix(qr(randn(rng, 6, 6)).Q)
+        A3 = Q * Diagonal([1e3, sqrt(1e3), 1.0, 1.0, 1 / sqrt(1e3), 1e-3]) * Q'
+        @test logdet_sample_cov(A3 * X) ≈ logdet_sample_cov(X) + 2 * logabsdet(A3)[1] atol = 1e-9
+        A6 = Q * Diagonal([1e6, 1e3, 1.0, 1.0, 1e-3, 1e-6]) * Q'
+        @test logdet_sample_cov(A6 * X) ≈ logdet_sample_cov(X) + 2 * logabsdet(A6)[1] atol = 1e-4
+    end
+
     @testset "Gauss-Hermite rule (Golub-Welsch)" begin
         # exact standard-normal moments E[ξᵏ] = (k-1)!! for even k, 0 for odd k,
         # for every k ≤ 2n - 1
