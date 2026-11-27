@@ -69,7 +69,7 @@ are 95% bootstrap intervals.*
 | Molniya s = 1, t = 1.000 T | 13.33 | 13.31 [13.29, 13.34] |
 | Molniya s = 1, t = 10.000 T | 29.74 | 29.72 [29.71, 29.74] |
 
-*commit f7383d6+dirty; Julia 1.12.3, 10 threads; LiouvilleMixtures 0.1.0-DEV, OrbitalMechanics 1.0.0@98a43ae, EstimationToolkit 0.9.1@9337396, OrdinaryDiffEqVerner 2.4.2, ForwardDiff 0.10.39, CairoMakie 0.15.15; seed 101; run time 431 s; 2026-11-27 16:58*
+*commit 353a016; Julia 1.12.3, 10 threads; LiouvilleMixtures 0.1.0-DEV, OrbitalMechanics 1.0.0@98a43ae, EstimationToolkit 0.9.1@9337396, OrdinaryDiffEqVerner 2.4.2, ForwardDiff 0.10.39, CairoMakie 0.15.15; seed 101; run time 418 s; 2026-11-27 19:21*
 
 
 ## E2: refit ratchet against cadence and location
@@ -134,7 +134,7 @@ volume, while refits near apolune stay close to the exact curve. (a) Refit caden
 where propagation breaks down. (b) One refit per revolution, placed at different points on
 the orbit.*
 
-*commit 3d1b649+dirty; Julia 1.12.3, 10 threads; LiouvilleMixtures 0.1.0-DEV, OrbitalMechanics 1.0.0@98a43ae, EstimationToolkit 0.9.1@9337396, OrdinaryDiffEqVerner 2.4.2, ForwardDiff 0.10.39, CairoMakie 0.15.15; seed 202; run time 143 s; 2026-11-27 18:18*
+*commit 353a016; Julia 1.12.3, 10 threads; LiouvilleMixtures 0.1.0-DEV, OrbitalMechanics 1.0.0@98a43ae, EstimationToolkit 0.9.1@9337396, OrdinaryDiffEqVerner 2.4.2, ForwardDiff 0.10.39, CairoMakie 0.15.15; seed 202; run time 132 s; 2026-11-27 19:23*
 
 
 ## E3: negentropy predictor against the exact negentropy
@@ -193,7 +193,7 @@ and beyond that the exact value lies above the closure. That matches the derived
 quadratic volume-preserving maps. Diamonds are paired
 Monte Carlo with 95% intervals.*
 
-*commit 3d1b649+dirty; Julia 1.12.3, 10 threads; LiouvilleMixtures 0.1.0-DEV, OrbitalMechanics 1.0.0@98a43ae, EstimationToolkit 0.9.1@9337396, OrdinaryDiffEqVerner 2.4.2, ForwardDiff 0.10.39, CairoMakie 0.15.15; seed 303; run time 179 s; 2026-11-27 18:21*
+*commit 353a016; Julia 1.12.3, 10 threads; LiouvilleMixtures 0.1.0-DEV, OrbitalMechanics 1.0.0@98a43ae, EstimationToolkit 0.9.1@9337396, OrdinaryDiffEqVerner 2.4.2, ForwardDiff 0.10.39, CairoMakie 0.15.15; seed 303; run time 163 s; 2026-11-27 19:26*
 
 
 ## E4: prediction-only accuracy against component count
@@ -232,7 +232,7 @@ Gaussian can reach.
 at K = 1. Lines are the three splitting policies: P3 and P4 split greedily up to K, and P2 is
 shown across its threshold sweep.*
 
-*commit f7383d6+dirty; Julia 1.12.3, 10 threads; LiouvilleMixtures 0.1.0-DEV, OrbitalMechanics 1.0.0@98a43ae, EstimationToolkit 0.9.1@9337396, OrdinaryDiffEqVerner 2.4.2, ForwardDiff 0.10.39, CairoMakie 0.15.15; seed 404; run time 82 s; 2026-11-27 17:04*
+*commit 353a016; Julia 1.12.3, 10 threads; LiouvilleMixtures 0.1.0-DEV, OrbitalMechanics 1.0.0@98a43ae, EstimationToolkit 0.9.1@9337396, OrdinaryDiffEqVerner 2.4.2, ForwardDiff 0.10.39, CairoMakie 0.15.15; seed 404; run time 75 s; 2026-11-27 19:27*
 
 
 ## E5: posterior accuracy after one update
@@ -326,7 +326,7 @@ differ in how many splits they ask for at a given threshold.
 measurements at the approach to perilune and at perilune. P3 and P4 split greedily to K
 components; P2 is shown across its threshold sweep.*
 
-*commit 3d1b649+dirty; Julia 1.12.3, 10 threads; LiouvilleMixtures 0.1.0-DEV, OrbitalMechanics 1.0.0@98a43ae, EstimationToolkit 0.9.1@9337396, OrdinaryDiffEqVerner 2.4.2, ForwardDiff 0.10.39, CairoMakie 0.15.15; seed 505; run time 409 s; 2026-11-27 18:14*
+*commit 353a016; Julia 1.12.3, 10 threads; LiouvilleMixtures 0.1.0-DEV, OrbitalMechanics 1.0.0@98a43ae, EstimationToolkit 0.9.1@9337396, OrdinaryDiffEqVerner 2.4.2, ForwardDiff 0.10.39, CairoMakie 0.15.15; seed 505; run time 389 s; 2026-11-27 19:34*
 
 
 ## E6: entropy ledger with drag
@@ -351,6 +351,6 @@ with the divergence term (solid) and without it (dashed). At realistic drag the 
 orders of magnitude smaller than J. The ledger closes, but leaving the term out changes nothing
 that matters here.*
 
-*commit f7383d6+dirty; Julia 1.12.3, 10 threads; LiouvilleMixtures 0.1.0-DEV, OrbitalMechanics 1.0.0@98a43ae, EstimationToolkit 0.9.1@9337396, OrdinaryDiffEqVerner 2.4.2, ForwardDiff 0.10.39, CairoMakie 0.15.15; seed 606; run time 86 s; 2026-11-27 17:11*
+*commit 353a016; Julia 1.12.3, 10 threads; LiouvilleMixtures 0.1.0-DEV, OrbitalMechanics 1.0.0@98a43ae, EstimationToolkit 0.9.1@9337396, OrdinaryDiffEqVerner 2.4.2, ForwardDiff 0.10.39, CairoMakie 0.15.15; seed 606; run time 83 s; 2026-11-27 19:35*
 
 
