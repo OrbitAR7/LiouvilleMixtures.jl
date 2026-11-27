@@ -23,7 +23,8 @@ mkpath(FIGDIR); mkpath(ROWDIR)
 
 function git_commit()
     c = try readchomp(`git -C $ROOT rev-parse --short HEAD`) catch; "unknown" end
-    dirty = try !isempty(readchomp(`git -C $ROOT status --porcelain --untracked-files=no`)) catch; false end
+    # changes under results/ are the scripts' own output, so they don't count as dirty
+    dirty = try !isempty(readchomp(`git -C $ROOT status --porcelain --untracked-files=no -- . ':!results'`)) catch; false end
     return dirty ? c * "+dirty" : c
 end
 
