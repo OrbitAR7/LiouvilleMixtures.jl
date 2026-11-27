@@ -69,7 +69,7 @@ are 95% bootstrap intervals.*
 | Molniya s = 1, t = 1.000 T | 13.33 | 13.31 [13.29, 13.34] |
 | Molniya s = 1, t = 10.000 T | 29.74 | 29.72 [29.71, 29.74] |
 
-*commit fb30025+dirty; Julia 1.12.3, 10 threads; LiouvilleMixtures 0.1.0-DEV, OrbitalMechanics 1.0.0@98a43ae, EstimationToolkit 0.9.1@9337396, OrdinaryDiffEqVerner 2.4.2, ForwardDiff 0.10.39, CairoMakie 0.15.15; seed 101; run time 403 s; 2026-11-27 05:20*
+*commit b60af92+dirty; Julia 1.12.3, 10 threads; LiouvilleMixtures 0.1.0-DEV, OrbitalMechanics 1.0.0@98a43ae, EstimationToolkit 0.9.1@9337396, OrdinaryDiffEqVerner 2.4.2, ForwardDiff 0.10.39, CairoMakie 0.15.15; seed 101; run time 403 s; 2026-11-27 15:43*
 
 
 ## E2: refit ratchet against cadence and location
@@ -120,6 +120,98 @@ volume, while refits near apolune stay close to the exact curve. (a) Refit caden
 where propagation breaks down. (b) One refit per revolution, placed at different points on
 the orbit.*
 
-*commit fb30025+dirty; Julia 1.12.3, 10 threads; LiouvilleMixtures 0.1.0-DEV, OrbitalMechanics 1.0.0@98a43ae, EstimationToolkit 0.9.1@9337396, OrdinaryDiffEqVerner 2.4.2, ForwardDiff 0.10.39, CairoMakie 0.15.15; seed 202; run time 91 s; 2026-11-27 05:22*
+*commit b60af92+dirty; Julia 1.12.3, 10 threads; LiouvilleMixtures 0.1.0-DEV, OrbitalMechanics 1.0.0@98a43ae, EstimationToolkit 0.9.1@9337396, OrdinaryDiffEqVerner 2.4.2, ForwardDiff 0.10.39, CairoMakie 0.15.15; seed 202; run time 91 s; 2026-11-27 15:44*
+
+
+## E3: negentropy predictor against the exact negentropy
+
+Predicted against exact negentropy over every problem, output time and prior size. Times:
+- T1: quarter revolutions up to 2 revolutions (LEO), eighth revolutions up to 1 revolution (Molniya).
+- T2: 1/24 revolution up to 1 revolution.
+
+Priors: s × (1 km, 1 m/s) for T1, s × (10 km, 10 cm/s) for T2. "Leaves [0.9, 1.1]" is the
+smallest predicted J at which a point falls outside ±10%, with points sorted by predicted J.
+
+| problem | points kept (of total) | J_pred where exact/pred first leaves [0.9, 1.1] | largest J_pred with all points within 10% below it | Monte Carlo against Gauss-Hermite (prior s; median relative difference where resolved) |
+|---|---|---|---|---|
+| T1 LEO, two-body | 45 (48) | 0.159 | 0.0859 | s = 0.1; 7 resolved, median 0.0021 |
+| T1 LEO, J2 | 45 (48) | 0.159 | 0.0885 | s = 0.1; 7 resolved, median 0.0044 |
+| T1 Molniya | 45 (56) | 0.236 | 0.111 | s = 0.01; 3 resolved, median 0.0030 |
+| T2 9:2 NRHO | 113 (120) | 0.195 | 0.11 | s = 1; 6 resolved, median 0.0278 |
+
+All problems pooled:
+
+| predicted J [nats] | points | median exact/pred | worst exact/pred | worst exact / ½ln(1+2 pred) |
+|---|---|---|---|---|
+| 1e-07 – 0.001 | 100 | 1.000 | 1.011 | 1.011 |
+| 0.001 – 0.01 | 36 | 0.997 | 0.992 | 1.003 |
+| 0.01 – 0.03 | 12 | 0.988 | 0.980 | 1.007 |
+| 0.03 – 0.1 | 20 | 0.961 | 0.921 | 1.015 |
+| 0.1 – 0.3 | 11 | 0.854 | 0.792 | 1.116 |
+| 0.3 – 1 | 9 | 0.665 | 0.602 | 1.091 |
+| 1 – 10 | 17 | 0.315 | 0.172 | 1.548 |
+| 10 – Inf | 26 | 0.007 | 0.000 | 1.600 |
+
+Largest deviation of the exact J from the shear closure ½ ln(1 + 2 J_pred):
+
+| problem | over J_pred < 1 nat | over J_pred < 10 nats |
+|---|---|---|
+| T1 LEO, two-body | 0.0% | 0.0% |
+| T1 LEO, J2 | 0.1% | 0.1% |
+| T1 Molniya | 3.5% | 15.9% |
+| T2 9:2 NRHO | 11.6% | 54.8% |
+
+![E3 predictor](figures/e3_predictor.png)
+
+*Exact negentropy divided by the leading-order prediction, against the prediction. One panel
+per problem, one colour per prior size. The grey band is ±10%, and the dashed line is the
+exact ratio for the T0 shear map, ln(1 + 2k²)/(2k²) at J_pred = k². In all four problems the
+predictor is within 10% up to a predicted J of about 0.1 nats. Beyond that the points follow
+the shear curve: the true negentropy behaves like ½ ln(1 + 2 J_pred), far past leading order.
+On LEO this holds to 0.1% up to 10 nats, where the nonlinearity is the curvature of the arc, a
+quadratic shear like T0's. On Molniya and the NRHO it holds to about 12% up to 1 nat and
+departs beyond. This is an empirical observation, not a derived result. Diamonds are paired
+Monte Carlo with 95% intervals.*
+
+*commit b60af92+dirty; Julia 1.12.3, 10 threads; LiouvilleMixtures 0.1.0-DEV, OrbitalMechanics 1.0.0@98a43ae, EstimationToolkit 0.9.1@9337396, OrdinaryDiffEqVerner 2.4.2, ForwardDiff 0.10.39, CairoMakie 0.15.15; seed 303; run time 161 s; 2026-11-27 15:47*
+
+
+## E4: prediction-only accuracy against component count
+
+Prediction-only accuracy: KL from the true propagated density to each policy's approximation,
+against the number of components K (95% intervals, N = 2×10⁵). P3 and P4 split greedily to a
+cap K (τ = 0). P2's threshold is swept (τ = 1e-7 … 1, cap 31), and each run is reported at the
+component count it reached. "Moment-matched Gaussian (= J)" is the lowest KL any single
+Gaussian can reach.
+
+| case | policy | KL [95% CI] at K components |
+|---|---|---|
+| T2 NRHO, first perilune (T/2) | moment-matched Gaussian (= J) | K = 1: 7.22 |
+| T2 NRHO, first perilune (T/2) | P0 linear | K = 1: 2.16e+05 [2.13e+05, 2.19e+05] |
+| T2 NRHO, first perilune (T/2) | P1 cubature refit | K = 1: 7.49 [7.47, 7.51] |
+| T2 NRHO, first perilune (T/2) | P2 entropy trigger | τ = 1e-07: K = 31, 659 [579, 739]; τ = 1e-06: K = 31, 201 [165, 237]; τ = 1e-05: K = 31, 127 [101, 152]; τ = 1e-04: K = 31, 76 [58.9, 93.1]; τ = 1e-03: K = 31, 56.8 [43.2, 70.5]; τ = 1e-02: K = 31, 64.8 [51.7, 77.8]; τ = 1e-01: K = 31, 98.2 [80.1, 116]; τ = 1e+00: K = 31, 126 [104, 148] |
+| T2 NRHO, first perilune (T/2) | P3 horizon, state | K = 1: 2.16e+05 [2.13e+05, 2.19e+05]; K = 3: 1.14e+04 [1.1e+04, 1.18e+04]; K = 5: 5.94e+03 [5.68e+03, 6.21e+03]; K = 9: 680 [620, 740]; K = 15: 349 [307, 391]; K = 21: 337 [295, 379]; K = 31: 58.5 [46.8, 70.1] |
+| T2 NRHO, first perilune (T/2) | P4 horizon, measurement | K = 1: 2.16e+05 [2.13e+05, 2.19e+05]; K = 3: 1.48e+04 [1.43e+04, 1.53e+04]; K = 5: 8.38e+03 [8.01e+03, 8.74e+03]; K = 9: 1.27e+03 [1.17e+03, 1.37e+03]; K = 15: 754 [680, 827]; K = 21: 746 [672, 819]; K = 31: 162 [137, 187] |
+| T2 NRHO, apolune (T) | moment-matched Gaussian (= J) | K = 1: 0.000144 |
+| T2 NRHO, apolune (T) | P0 linear | K = 1: 0.000252 [0.00015, 0.000353] |
+| T2 NRHO, apolune (T) | P1 cubature refit | K = 1: 12.3 [12.3, 12.3] |
+| T2 NRHO, apolune (T) | P2 entropy trigger | τ = 1e-07: K = 31, 0.00432 [0.00385, 0.00478]; τ = 1e-06: K = 31, 0.00441 [0.00394, 0.00488]; τ = 1e-05: K = 31, 0.00437 [0.0039, 0.00483]; τ = 1e-04: K = 31, 0.00443 [0.00397, 0.00489]; τ = 1e-03: K = 31, 0.00461 [0.00417, 0.00506]; τ = 1e-02: K = 31, 0.00615 [0.00564, 0.00666]; τ = 1e-01: K = 31, 0.0263 [0.0252, 0.0273]; τ = 1e+00: K = 31, 0.111 [0.108, 0.113] |
+| T2 NRHO, apolune (T) | P3 horizon, state | K = 1: 0.000252 [0.00015, 0.000353]; K = 3: 0.00135 [0.00112, 0.00158]; K = 5: 0.00151 [0.00126, 0.00175]; K = 9: 0.00261 [0.00229, 0.00293]; K = 15: 0.00267 [0.00234, 0.003]; K = 21: 0.00374 [0.00334, 0.00413]; K = 31: 0.00379 [0.00339, 0.0042] |
+| T2 NRHO, apolune (T) | P4 horizon, measurement | K = 1: 0.000252 [0.00015, 0.000353]; K = 3: 0.00146 [0.00122, 0.0017]; K = 5: 0.00155 [0.0013, 0.0018]; K = 9: 0.00257 [0.00225, 0.0029]; K = 15: 0.00279 [0.00245, 0.00313]; K = 21: 0.0036 [0.00322, 0.00399]; K = 31: 0.00387 [0.00347, 0.00428] |
+| T1 LEO, one revolution | moment-matched Gaussian (= J) | K = 1: 1.43 |
+| T1 LEO, one revolution | P0 linear | K = 1: 12.5 [12.3, 12.6] |
+| T1 LEO, one revolution | P1 cubature refit | K = 1: 1.68 [1.66, 1.7] |
+| T1 LEO, one revolution | P2 entropy trigger | τ = 1e-07: K = 31, 0.859 [0.846, 0.872]; τ = 1e-06: K = 31, 3.42 [3.36, 3.47]; τ = 1e-05: K = 31, 0.924 [0.912, 0.936]; τ = 1e-04: K = 31, 0.632 [0.626, 0.639]; τ = 1e-03: K = 31, 0.665 [0.658, 0.672]; τ = 1e-02: K = 31, 0.688 [0.679, 0.696]; τ = 1e-01: K = 9, 2.06 [2.03, 2.1]; τ = 1e+00: K = 1, 12.5 [12.3, 12.6] |
+| T1 LEO, one revolution | P3 horizon, state | K = 1: 12.5 [12.3, 12.6]; K = 3: 0.974 [0.949, 0.999]; K = 5: 0.7 [0.682, 0.719]; K = 9: 0.225 [0.22, 0.23]; K = 15: 0.18 [0.176, 0.184]; K = 21: 0.109 [0.105, 0.113]; K = 31: 0.0628 [0.061, 0.0645] |
+| T1 LEO, one revolution | P4 horizon, measurement | K = 1: 12.5 [12.3, 12.6]; K = 3: 2.17 [2.13, 2.22]; K = 5: 1.51 [1.47, 1.54]; K = 9: 0.535 [0.525, 0.544]; K = 15: 0.485 [0.477, 0.492]; K = 21: 0.459 [0.452, 0.467]; K = 31: 0.398 [0.395, 0.402] |
+
+![E4 accuracy](figures/e4_accuracy.png)
+
+*KL to the truth against component count. The dashed line is the moment-matched Gaussian
+(KL = J). Squares mark the linear P0 and triangles the single-Gaussian cubature refit, both
+at K = 1. Lines are the three splitting policies: P3 and P4 split greedily up to K, and P2 is
+shown across its threshold sweep.*
+
+*commit b60af92+dirty; Julia 1.12.3, 10 threads; LiouvilleMixtures 0.1.0-DEV, OrbitalMechanics 1.0.0@98a43ae, EstimationToolkit 0.9.1@9337396, OrdinaryDiffEqVerner 2.4.2, ForwardDiff 0.10.39, CairoMakie 0.15.15; seed 404; run time 76 s; 2026-11-27 15:48*
 
 

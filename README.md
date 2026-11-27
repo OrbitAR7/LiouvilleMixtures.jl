@@ -37,7 +37,7 @@ Julia 1.10 (LTS) or later. On 1.10, install the pinned git dependencies first:
 julia --project=. .github/install_sources.jl Project.toml
 ```
 
-Regenerate every figure and `results/summary.md` (about 15 minutes with 10 threads):
+Regenerate every figure and `results/summary.md` (about 13 minutes with 10 threads):
 
 ```bash
 julia --project=scripts -e 'using Pkg; Pkg.instantiate()'
