@@ -10,12 +10,13 @@ ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 OrbitalMechanics = "250cb768-ee57-4cca-8e52-7aae82f4f625"
 OrdinaryDiffEqVerner = "79d7bb75-1356-48c1-b8c0-6832512096c2"
+PrecompileTools = "aea7be01-6a6a-4083-8856-8a6e6704d82a"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 
 [sources]
-EstimationToolkit = {url = "https://github.com/OrbitAR7/EstimationToolkit.jl", rev = "9337396d8034c75684d0236fb3e1b06d8c138b9d"}
-OrbitalMechanics = {url = "https://github.com/OrbitAR7/orbital-mechanics-jl", rev = "98a43ae50553149c8d9322e7768f2193ee23c4d2"}
+EstimationToolkit = {rev = "9337396d8034c75684d0236fb3e1b06d8c138b9d", url = "https://github.com/OrbitAR7/EstimationToolkit.jl"}
+OrbitalMechanics = {rev = "98a43ae50553149c8d9322e7768f2193ee23c4d2", url = "https://github.com/OrbitAR7/orbital-mechanics-jl"}
 
 [compat]
 Distributions = "0.25"
@@ -24,6 +25,7 @@ ForwardDiff = "0.10, 1"
 LinearAlgebra = "1"
 OrbitalMechanics = "1"
 OrdinaryDiffEqVerner = "1, 2"
+PrecompileTools = "1"
 Random = "1"
 StaticArrays = "1"
 TaylorIntegration = "0.18.20"

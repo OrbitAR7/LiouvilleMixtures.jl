@@ -31,6 +31,7 @@ using OrdinaryDiffEqVerner
 using OrbitalMechanics
 import EstimationToolkit
 using EstimationToolkit: split_gaussian
+using PrecompileTools: @setup_workload, @compile_workload
 
 export DynamicsModel, TwoBody, J2Gravity, CR3BP
 export vector_field, potential, state_jacobian, state_hessian
@@ -60,5 +61,6 @@ include("measurements.jl")
 include("predictor.jl")
 include("mixtures.jl")
 include("policies.jl")
+include("precompile.jl")
 
 end # module
