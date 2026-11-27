@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/OrbitAR7/LiouvilleMixtures.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/OrbitAR7/LiouvilleMixtures.jl/actions/workflows/CI.yml)
 
-**Status: in development.** The dynamics, transition tensors, entropy/KL tools and the leading-order negentropy predictor are implemented and tested ([derivations](docs/src/derivations.md)). The study experiments are not yet run.
+**Status: in development.** The dynamics, transition tensors, entropy/KL tools, the leading-order negentropy predictor ([derivations](docs/src/derivations.md)) and six propagation policies are implemented and tested. The study experiments are not yet run.
 
 ## Problems
 
@@ -46,5 +46,7 @@ julia --project=docs docs/make.jl
 
 - [OrbitalMechanics.jl](https://github.com/OrbitAR7/orbital-mechanics-jl), pinned to commit
   `98a43ae` in `Project.toml`. It supplies the CR3BP equations of motion and the 9:2 NRHO.
+- [EstimationToolkit.jl](https://github.com/OrbitAR7/EstimationToolkit.jl), pinned to commit `9337396`. It supplies the
+  three-component split library and Runnalls' merge bound.
 - OrdinaryDiffEqVerner (the Vern9 integrator), ForwardDiff, Distributions (normal quantiles), StaticArrays.
 - Test only: TaylorIntegration and TaylorSeries (jet transport, an independent check of the tensors).

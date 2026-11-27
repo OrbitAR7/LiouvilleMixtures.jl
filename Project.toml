@@ -5,6 +5,7 @@ authors = ["Hamoud Alshammari"]
 
 [deps]
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
+EstimationToolkit = "3fff6bea-05b7-4b28-b451-a885f78558b1"
 ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 OrbitalMechanics = "250cb768-ee57-4cca-8e52-7aae82f4f625"
@@ -13,10 +14,12 @@ Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 
 [sources]
-OrbitalMechanics = {rev = "98a43ae50553149c8d9322e7768f2193ee23c4d2", url = "https://github.com/OrbitAR7/orbital-mechanics-jl"}
+EstimationToolkit = {url = "https://github.com/OrbitAR7/EstimationToolkit.jl", rev = "9337396d8034c75684d0236fb3e1b06d8c138b9d"}
+OrbitalMechanics = {url = "https://github.com/OrbitAR7/orbital-mechanics-jl", rev = "98a43ae50553149c8d9322e7768f2193ee23c4d2"}
 
 [compat]
 Distributions = "0.25"
+EstimationToolkit = "0.9"
 ForwardDiff = "0.10, 1"
 LinearAlgebra = "1"
 OrbitalMechanics = "1"

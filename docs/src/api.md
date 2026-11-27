@@ -78,4 +78,42 @@ third_cumulant
 negentropy_edgeworth
 volume_trace
 predicted_negentropy
+measurement_tensors
+measurement_negentropy
+max_nonlinearity_direction
+```
+
+## Gaussian mixtures
+
+```@docs
+GaussianMixture
+ncomponents
+mixture_mean_cov
+mixture_logpdf
+split_component
+merge_components
+merge_cost
+```
+
+## Measurement models
+
+```@docs
+MeasurementModel
+RangeRangeRate
+Angles
+measure
+measurement_cov
+measurement_jacobian
+measurement_hessian
+```
+
+## Propagation policies
+
+```@docs
+Policy
+LinearPropagation
+ScheduledRefit
+EntropyTrigger
+HorizonSplit
+propagate_policy
 ```

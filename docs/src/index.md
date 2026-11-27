@@ -73,3 +73,30 @@ sizes:
 - How quickly it fails depends strongly on where along the orbit the epoch
   falls. The same 1 km / 1 m/s prior on the Molniya orbit carries 0.19 nats
   at apogee and 13 nats at perigee.
+
+## Propagation policies
+
+Six policies propagate a Gaussian or a Gaussian mixture through a decision horizon:
+
+| | Policy | Splits or refits when |
+|---|---|---|
+| P0 | [`LinearPropagation`](@ref) | never; every component follows its state transition matrix |
+| P1 | [`ScheduledRefit`](@ref) | on a fixed schedule (unscented, or exact Gauss-Hermite moment matching) |
+| P2 | [`EntropyTrigger`](@ref) | the accumulated per-step entropy difference exceeds τ (after DeMars, Bishop and Jah 2013) |
+| P3 | [`HorizonSplit`](@ref) | the predicted negentropy at the next decision epoch exceeds τ |
+| P4 | [`HorizonSplit`](@ref) with a measurement | the predicted negentropy of the next measurement exceeds τ |
+| P5 | [`HorizonSplit`](@ref) with `τ_merge` | as P4, and pairs are merged first when Runnalls' bound is below `τ_merge` |
+
+**How the policies compare.** The mixture components of P2 to P5 are propagated
+linearly, so with infinite thresholds every one of them reduces exactly to P0.
+They differ only in where they split and merge.
+
+**Split directions.** P3 and P4 split along the input direction in which the
+composed map to the next epoch bends most ([`max_nonlinearity_direction`](@ref)).
+That bending is measured in state space for P3 and in measurement space for P4.
+
+**Measurement space versus state space.** The two can disagree strongly. Take a
+1 km / 1 m/s prior on the T1 LEO orbit. In Cartesian coordinates its predicted
+negentropy after one revolution is 8.3 nats. Seen through geocentric angles, the
+measurement negentropy is below 10⁻⁶ nats, because azimuth follows along-track
+position almost linearly.

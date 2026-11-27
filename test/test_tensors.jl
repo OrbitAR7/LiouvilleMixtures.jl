@@ -7,7 +7,9 @@
 # entries that are zero.
 
 @testset "transition tensors" begin
-    problems = (t1_leo(), t1_leo(J2Gravity()), t1_molniya(), t1_molniya(J2Gravity()), NRHO)
+    # LEO with J2 is in the full tier; Molniya with J2 covers the J2 tensors in the fast one
+    problems = FULL_TESTS ? (t1_leo(), t1_leo(J2Gravity()), t1_molniya(), t1_molniya(J2Gravity()), NRHO) :
+                            (t1_leo(), t1_molniya(), t1_molniya(J2Gravity()), NRHO)
 
     # Central-difference step δ (h_k = δ D_k) for the FD check of Ψ, from a scan
     # over δ = 1e-3 ... 3e-8 on 26 Nov 2026 (relative error at one revolution):

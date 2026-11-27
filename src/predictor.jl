@@ -117,3 +117,98 @@ function predicted_negentropy(model::DynamicsModel, m0::AbstractVector, P0::Abst
     sol = propagate_tensors(model, m0, t)
     return negentropy_leading(whitened_tensor(sol.Φ[end], sol.Ψ[end], S0))
 end
+
+# -----------------------------------------------------------------------------
+# Measurement-space criterion and direction of largest nonlinearity
+# -----------------------------------------------------------------------------
+
+"""
+    measurement_tensors(meas, Φ, Ψ, x̂, S0) -> (A, Q, Pz)
+
+Whitened first- and second-order terms of the composed map
+`ξ ↦ z = h(φ(m₀ + S0 ξ))` from the whitened prior to the measurement.
+
+- `x̂ = φ(m₀)`, where `Φ` and `Ψ` are the transition tensors of `φ` at `m₀`.
+- `Pz = G₁ S0 S0ᵀ G₁ᵀ + R`, with `G₁ = H Φ`, is the predicted measurement
+  covariance (linear).
+- With `W = chol(Pz).L⁻¹`, the outputs are `A = W G₁ S0` and
+  `Q[c, :, :] = S0ᵀ (W G₂)_c S0`, where
+  `G₂_ijk = H_il Ψ_ljk + H2_ilm Φ_lj Φ_mk`.
+"""
+function measurement_tensors(meas::MeasurementModel, Φ::AbstractMatrix, Ψ::AbstractArray{<:Real,3},
+                             x̂::AbstractVector, S0::AbstractMatrix)
+    H = measurement_jacobian(meas, x̂)
+    H2 = measurement_hessian(meas, x̂)
+    nz = size(H, 1)
+    G1 = H * Φ
+    G2 = reshape(H * reshape(Ψ, 6, 36), nz, 6, 6)
+    for i in 1:nz
+        G2[i, :, :] .+= Φ' * H2[i, :, :] * Φ
+    end
+    Pz = G1 * S0 * S0' * G1' + Matrix(measurement_cov(meas))
+    W = inv(cholesky(Symmetric(Pz)).L)
+    A = W * G1 * S0
+    WG2 = reshape(W * reshape(G2, nz, 36), nz, 6, 6)
+    Q = similar(WG2)
+    for c in 1:nz
+        Q[c, :, :] = S0' * WG2[c, :, :] * S0
+    end
+    return A, Q, Pz
+end
+
+"""
+    measurement_negentropy(A, Q)
+
+Leading-order negentropy [nats] of the predicted measurement, `(1/12) ‖κ₃‖²`, with
+
+    κ_abc = (A Q_c Aᵀ)_ab + (A Q_a Aᵀ)_bc + (A Q_b Aᵀ)_ca,
+
+the standardized third cumulant of `z` to leading order. The measurement noise is
+Gaussian, so it adds no third cumulant; it enters only through the whitening in
+`A` and `Q`. With `h` the identity and `R → 0`, this reduces to
+[`negentropy_leading`](@ref) of the state.
+"""
+function measurement_negentropy(A::AbstractMatrix, Q::AbstractArray{<:Real,3})
+    nz = size(A, 1)
+    M = [A * Q[c, :, :] * A' for c in 1:nz]             # M[c][a, b] = (A Q_c Aᵀ)_ab
+    κ = [M[c][a, b] + M[a][b, c] + M[b][c, a] for a in 1:nz, b in 1:nz, c in 1:nz]
+    return sum(abs2, κ) / 12
+end
+
+"""
+    max_nonlinearity_direction(T; iters = 500, tol = 1e-12) -> (u, f)
+
+Unit vector `u` that maximizes `f(u) = Σ_c (uᵀ T_c u)²` for the stack of
+symmetric matrices `T[c, :, :]`: the input direction along which a quadratic map
+bends most.
+
+The search is a shifted higher-order power iteration,
+`u ← normalize(Σ_c (uᵀT_c u) T_c u + β u)` with `β = 3 Σ_c ‖T_c‖²`. The fixed
+point of the unshifted step is a stationary point of f. The shift makes the
+iteration monotone in f, as in SS-HOPM for symmetric tensors. It starts from
+every coordinate axis and from the leading eigenvector of `Σ_c T_c²`, and keeps
+the best local maximum.
+"""
+function max_nonlinearity_direction(T::AbstractArray{<:Real,3}; iters::Integer = 500, tol::Real = 1e-12)
+    k, d = size(T, 1), size(T, 2)
+    Ts = [T[c, :, :] for c in 1:k]
+    f(u) = sum((dot(u, Tc * u))^2 for Tc in Ts)
+    M = sum(Tc * Tc for Tc in Ts)
+    starts = [collect(eachcol(Matrix(1.0I, d, d)))..., eigen(Symmetric(M)).vectors[:, end]]
+    best_u, best_f = starts[1], -Inf
+    β = 3 * sum(opnorm(Tc)^2 for Tc in Ts)
+    β == 0 && return starts[1], 0.0
+    for u0 in starts
+        u = u0 / norm(u0)
+        for _ in 1:iters
+            g = sum(dot(u, Tc * u) * (Tc * u) for Tc in Ts) + β * u
+            v = g / norm(g)
+            done = norm(v - u) < tol
+            u = v
+            done && break
+        end
+        fu = f(u)
+        fu > best_f && ((best_u, best_f) = (u, fu))
+    end
+    return best_u, best_f
+end

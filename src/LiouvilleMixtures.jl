@@ -29,6 +29,8 @@ using StaticArrays
 using ForwardDiff
 using OrdinaryDiffEqVerner
 using OrbitalMechanics
+import EstimationToolkit
+using EstimationToolkit: split_gaussian
 
 export DynamicsModel, TwoBody, J2Gravity, CR3BP
 export vector_field, potential, state_jacobian, state_hessian
@@ -42,12 +44,21 @@ export negentropy_mc, kl_mc, propagate_samples
 export gauss_hermite, gauss_hermite_tensor, quadrature_mean_cov
 export whitened_tensor, negentropy_leading, third_cumulant, negentropy_edgeworth
 export volume_trace, predicted_negentropy
+export measurement_tensors, measurement_negentropy, max_nonlinearity_direction
+export GaussianMixture, ncomponents, mixture_mean_cov, mixture_logpdf
+export split_component, merge_components, merge_cost
+export MeasurementModel, RangeRangeRate, Angles, measure, measurement_cov
+export measurement_jacobian, measurement_hessian
+export Policy, LinearPropagation, ScheduledRefit, EntropyTrigger, HorizonSplit, propagate_policy
 
 include("dynamics.jl")
 include("tensors.jl")
 include("test_problems.jl")
 include("entropy.jl")
 include("quadrature.jl")
+include("measurements.jl")
 include("predictor.jl")
+include("mixtures.jl")
+include("policies.jl")
 
 end # module

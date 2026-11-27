@@ -28,4 +28,5 @@ const NRHO_V = NRHO.model.system.l_star / NRHO.model.system.t_star   # km/s
     include("test_tensors.jl")
     include("test_entropy.jl")
     include("test_predictor.jl")
+    include("test_policies.jl")
 end
