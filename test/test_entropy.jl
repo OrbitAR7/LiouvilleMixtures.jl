@@ -130,6 +130,20 @@ using Distributions: MvNormal, logpdf, entropy
         @test 176 <= hits <= 197
     end
 
+    FULL_TESTS && @testset "bootstrap interval coverage at N = 2e4 (nominal 95%)" begin
+        # the sample sizes the experiments use; the measured coverage there is
+        # 0.948 ± 0.005, so the bound is centred on the nominal 0.95: 190 ± 3 sd
+        c, σ1, σ2 = 1.0, 0.3, 0.2
+        P0 = Diagonal([σ1^2, σ2^2])
+        J = t0_negentropy(c, σ1, σ2)
+        rng = Xoshiro(33)
+        hits = count(1:200) do _
+            X = sample_gaussian(rng, zeros(2), P0, 20_000)
+            J ∈ negentropy_mc(X, shear_map(X; c), P0; B = 200, rng)
+        end
+        @test 180 <= hits <= 199
+    end
+
     @testset "KL estimator is zero when q is the truth (c=$c, σ1=$σ1, σ2=$σ2)" for (c, σ1, σ2) in T0_CASES
         P0 = Diagonal([σ1^2, σ2^2])
         X = sample_gaussian(Xoshiro(2027), zeros(2), P0, N_MC)

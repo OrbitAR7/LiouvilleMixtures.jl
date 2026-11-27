@@ -25,7 +25,7 @@
   title   = {Higher-Order Tensor-Based Deferral of {G}aussian Splitting for Orbit Uncertainty Propagation},
   year    = {2025},
   eprint  = {2507.01771}, archivePrefix = {arXiv},
-  note    = {verified 2026-11-26 on arXiv (v2, 29 Dec 2025); preprint, submitted to IEEE}
+  note    = {verified 2026-11-26 on arXiv (v2, 29 Dec 2025); preprint. The HTML full text says it was submitted to the IEEE; the arXiv abstract page shows no journal reference}
 }
 
 @misc{Kulik2025fidelity,
@@ -62,7 +62,6 @@
   doi     = {10.1090/S0025-5718-69-99647-1},
   note    = {verified 2026-11-27 via Crossref metadata}
 }
-}
 
 @article{Comon1994,
   author  = {Comon, Pierre},
@@ -97,10 +96,9 @@
   author  = {Walker, M. J. H. and Ireland, B. and Owens, Joyce},
   title   = {A Set of Modified Equinoctial Orbit Elements},
   journal = {Celestial Mechanics},
-  volume  = {36}, year = {1985},
-  note    = {UNVERIFIED: from memory (Crossref rate-limited 2026-11-27); pages and DOI to be checked.
-             The conversion formulas in src/elements.jl are verified by tests instead: they round-trip
-             and agree with classical elements to 1e-12.}
+  volume  = {36}, number = {4}, pages = {409--419}, year = {1985},
+  doi     = {10.1007/BF01227493},
+  note    = {verified 2026-11-27 via Crossref metadata (by the independent review)}
 }
 
 @article{AlspachSorenson1972,
@@ -110,4 +108,87 @@
   volume  = {17}, number = {4}, pages = {439--448}, year = {1972},
   doi     = {10.1109/TAC.1972.1100034},
   note    = {verified 2026-11-27 via Crossref metadata (authors' initials only there)}
+}
+
+@misc{GuptaDeMars2026,
+  author = {Gupta, Maaninee and DeMars, Kyle J.},
+  title  = {Cislunar State and Uncertainty Propagation via the Modified Generalized Equinoctial Orbital Elements},
+  year   = {2026}, eprint = {2603.20110}, archivePrefix = {arXiv},
+  note   = {verified 2026-11-27 on arXiv; submitted to Celestial Mechanics and Dynamical Astronomy. arXiv lists related DOI 10.1007/s10569-026-10333-y; the journal record could not be read (publisher login)}
+}
+
+@misc{Michelotti2026,
+  author = {Michelotti, Niccol{\`o} and Burnett, Ethan R. and Topputo, Francesco},
+  title  = {Analytical Confidence Boundaries for Non-{G}aussian Uncertainty in Perturbed Spacecraft Dynamics},
+  year   = {2026}, eprint = {2607.10095}, archivePrefix = {arXiv},
+  note   = {verified 2026-11-27 on arXiv; prepared for the 2026 AAS Astrodynamics Specialist Conference}
+}
+
+@misc{BurnettBoone2026,
+  author = {Burnett, Ethan R. and Boone, Spencer},
+  title  = {Efficient Nonlinear Uncertainty Quantification for Spaceflight Leveraging Nonlinear Expansions},
+  year   = {2026}, eprint = {2605.24147}, archivePrefix = {arXiv},
+  note   = {verified 2026-11-27 on arXiv}
+}
+
+@misc{Schneiderheinze2026,
+  author = {Schneiderheinze, Benjamin and De Vittori, Andrea and LeGrand, Keith A. and Bruer, Jill},
+  title  = {Two-Filter Adaptive {G}aussian Mixture Smoothing for Nonlinear Systems},
+  year   = {2026}, eprint = {2607.27151}, archivePrefix = {arXiv},
+  note   = {verified 2026-11-27 on arXiv}
+}
+
+@article{JensonScheeres2023,
+  author  = {Jenson, Erica L. and Scheeres, Daniel J.},
+  title   = {Semianalytical Measures of Nonlinearity Based on Tensor Eigenpairs},
+  journal = {Journal of Guidance, Control, and Dynamics},
+  volume  = {46}, number = {4}, pages = {638--653}, year = {2023},
+  doi     = {10.2514/1.G006760},
+  note    = {verified 2026-11-27 via Crossref metadata. The planning brief placed this in Acta Astronautica;
+             the Acta paper by the same authors is "Bounding nonlinear stretching about spacecraft trajectories
+             using tensor eigenpairs", Acta Astronautica 214:159--166 (2024), doi 10.1016/j.actaastro.2023.10.013}
+}
+
+@article{JunkinsSingla2004,
+  author  = {Junkins, John L. and Singla, Puneet},
+  title   = {How Nonlinear Is It? {A} Tutorial on Nonlinearity of Orbit and Attitude Dynamics},
+  journal = {The Journal of the Astronautical Sciences},
+  volume  = {52}, number = {1--2}, pages = {7--60}, year = {2004},
+  doi     = {10.1007/BF03546420},
+  note    = {verified 2026-11-27 via Crossref metadata}
+}
+
+@inproceedings{Huber2008,
+  author    = {Huber, Marco F. and Bailey, Tim and Durrant-Whyte, Hugh and Hanebeck, Uwe D.},
+  title     = {On Entropy Approximation for {G}aussian Mixture Random Vectors},
+  booktitle = {IEEE International Conference on Multisensor Fusion and Integration for Intelligent Systems (MFI)},
+  pages     = {181--188}, year = {2008},
+  doi       = {10.1109/MFI.2008.4648062},
+  note      = {verified 2026-11-27 via Crossref metadata}
+}
+
+@article{Losacco2024,
+  author  = {Losacco, Matteo and Foss{\`a}, Alberto and Armellin, Roberto},
+  title   = {Low-Order Automatic Domain Splitting Approach for Nonlinear Uncertainty Mapping},
+  journal = {Journal of Guidance, Control, and Dynamics},
+  volume  = {47}, number = {2}, pages = {291--310}, year = {2024},
+  doi     = {10.2514/1.G007271},
+  note    = {verified 2026-11-27 via Crossref metadata}
+}
+
+@article{TuggleZanetti2018,
+  author  = {Tuggle, Kirsten and Zanetti, Renato},
+  title   = {Automated Splitting {G}aussian Mixture Nonlinear Measurement Update},
+  journal = {Journal of Guidance, Control, and Dynamics},
+  volume  = {41}, number = {3}, pages = {725--734}, year = {2018},
+  doi     = {10.2514/1.G003109},
+  note    = {verified 2026-11-27 via Crossref metadata}
+}
+
+@article{Horwood2011,
+  author  = {Horwood, Joshua T. and Aragon, Nathan D. and Poore, Aubrey B.},
+  title   = {{G}aussian Sum Filters for Space Surveillance: Theory and Simulations},
+  journal = {Journal of Guidance, Control, and Dynamics},
+  year    = {2011},
+  note    = {UNVERIFIED: Crossref rate-limited on 2026-11-27; volume, pages and DOI to be checked. Not cited in the README}
 }

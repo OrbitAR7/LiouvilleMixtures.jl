@@ -6,10 +6,11 @@
 # of: range, range-rate, or angles (azimuth and elevation).
 #
 # Ground truth. The exact posterior is represented by N = 5×10⁵ prior samples,
-# propagated exactly and weighted by the likelihood (brief §5). The accuracy of
-# an approximate posterior q is KL(p(x | z) ‖ q), averaged over M = 16
+# propagated exactly and weighted by the likelihood. The accuracy of
+# an approximate posterior q is KL(p(x | z) ‖ q), averaged over M = 32
 # measurement draws z = h(x*) + v, where x* is a random truth sample. The 95%
-# interval comes from the spread across draws. The importance-sampling floor is
+# interval is a percentile bootstrap of that mean. Part (b) uses the first
+# 2×10⁵ of the samples to keep the run time manageable. The importance-sampling floor is
 # about 1/√ESS, so a case counts as resolved only if its interval excludes zero
 # and the smallest ESS is at least 100.
 #
@@ -34,9 +35,9 @@
 const E5_SEED = 505
 const E5_FRACS = [0.1, 0.2, 0.3, 0.4, 0.45, 0.5, 0.55, 0.6, 0.8, 1.0]
 const E5_CAPS = [1, 3, 5, 9, 15, 21, 31]
-const E5_TAUS = 10.0 .^ (-7:0)
+const E5_TAUS = [1e-6, 1e-4, 1e-2]      # P2 thresholds, fixed before any run
 const E5_N = 500_000
-const E5_M = 16
+const E5_M = 32
 const E5_RATIO = 0.2
 
 function scaled_measurements(origin, xlin, Plin, ratio)
@@ -55,8 +56,12 @@ function expected_posterior_kl(q::GaussianMixture, meas, Xt, H, W, x̄, lp0, idx
         kl, ess = posterior_kl(lp0, measurement_loglik(meas, z, Xt), mixture_logpdf(pw, H))
         push!(kls, kl); push!(esss, ess)
     end
-    m = mean(kls); se = std(kls) / sqrt(length(kls))
-    lo, hi = m - 2.13se, m + 2.13se                 # t(15), 95%
+    # percentile bootstrap of the mean over draws: the per-draw KL is heavy-tailed,
+    # so a symmetric t-interval would extend into impossible negative values
+    m = mean(kls)
+    rng = Xoshiro(E5_SEED + 7)
+    bs = sort([mean(kls[rand(rng, 1:length(kls), length(kls))]) for _ in 1:4000])
+    lo, hi = bs[100], bs[3900]                      # 2.5% and 97.5% of 4000
     ess = minimum(esss)
     return (; value = m, lo, hi, ess, resolved = lo > 0 && ess >= 100)
 end
@@ -128,7 +133,7 @@ function e5_run()
 
     # ---------------- (b) H5 at equal component count ----------------
     rowsB = ["| epoch | policy | posterior KL [95% CI] (components) |", "|---|---|---|"]
-    rowsK = ["| epoch | target: fraction of P0's posterior KL | target [nats] | P2 needs K | P3 needs K | P4 needs K |", "|---|---|---|---|---|---|"]
+    rowsK = ["| epoch | target: fraction of P0's posterior KL | target [nats] | P2 needs K (best τ) | P2 needs K (worst τ) | P3 needs K | P4 needs K |", "|---|---|---|---|---|---|---|"]
     figB = Figure(size = (820, 400))
     for (col, frac) in enumerate((0.45, 0.5))
         k = findfirst(==(frac), E5_FRACS)
@@ -136,19 +141,28 @@ function e5_run()
         Φ, x̄ = lin.Φ[k], lin.x[k]
         Plin = Φ * P0 * Φ'
         W = S0 \ symplectic_inverse(nrho.model, Φ)
-        H = W * (clouds[k] .- x̄)
+        Nb = 200_000
+        Xb = clouds[k][:, 1:Nb]
+        H = W * (Xb .- x̄)
+        lp0b = lp0[1:Nb]
+        idxb = rand(Xoshiro(E5_SEED + 2), 1:Nb, E5_M)
         meas = Dict(scaled_measurements(origin, x̄, Plin, E5_RATIO))["range"]
         prior = GaussianMixture(nrho.x0, P0)
         post(pol) = (q = propagate_policy(pol, nrho.model, prior, [t])[1];
-                     (ncomponents(q), expected_posterior_kl(q, meas, clouds[k], H, W, x̄, lp0, idx, Xoshiro(E5_SEED + 99))))
-        p2 = [post(EntropyTrigger(τ; dt = T / 32, max_components = 31)) for τ in E5_TAUS]
+                     (ncomponents(q), expected_posterior_kl(q, meas, Xb, H, W, x̄, lp0b, idxb, Xoshiro(E5_SEED + 99))))
+        # P2 at every cap and three fixed thresholds: (K, estimate, τ)
+        p2all = [(post(EntropyTrigger(τ; dt = T / 32, max_components = K))..., τ) for K in E5_CAPS[2:end] for τ in E5_TAUS]
+        p2 = [(q[1], q[2]) for q in p2all]
+        # best and worst threshold at each component count (worst = the conservative one)
+        p2best = [(K, argmin(e -> e.value, [q[2] for q in p2all if q[1] == K])) for K in sort(unique(first.(p2all)))]
+        p2worst = [(K, argmax(e -> e.value, [q[2] for q in p2all if q[1] == K])) for K in sort(unique(first.(p2all)))]
         p3 = [post(HorizonSplit(0.0; max_components = K)) for K in E5_CAPS]
         p4 = [post(HorizonSplit(0.0; measurement = meas, max_components = K)) for K in E5_CAPS]
         ax = Axis(figB[1, col]; xscale = log10, yscale = log10, xticks = (E5_CAPS, string.(E5_CAPS)),
                   xlabel = "mixture components K", ylabel = col == 1 ? "posterior KL after one update [nats]" : "",
                   title = @sprintf("range measurement at %.2f T", frac), yticks = decade_ticks(-4, 6))
         scatter!(ax, first.(p2), max.([e.value for (_, e) in p2], 1e-4); color = CAT[1], marker = :diamond, markersize = 8,
-                 label = "P2 entropy trigger (τ sweep)")
+                 label = "P2 entropy trigger (3 thresholds per cap)")
         for (i, (v, lab)) in enumerate(((p3, "P3 horizon, state"), (p4, "P4 horizon, measurement")))
             lines!(ax, first.(v), max.([e.value for (_, e) in v], 1e-4); color = CAT[i+1], linestyle = STYLES[i+1], label = lab)
             scatter!(ax, first.(v), max.([e.value for (_, e) in v], 1e-4); color = CAT[i+1], markersize = 7)
@@ -156,14 +170,16 @@ function e5_run()
         col == 1 && Legend(figB[2, 1:2], ax; orientation = :horizontal, labelsize = 9, tellheight = true)
         fmt(v) = join([@sprintf("K = %d: %.3g [%.3g, %.3g]", K, e.value, e.lo, e.hi) for (K, e) in v], "; ")
         push!(rowsB, @sprintf("| %.2f T | P2 entropy trigger | %s |", frac,
-                              join([@sprintf("τ = %.0e: %.3g [%.3g, %.3g] (K = %d)", τ, e.value, e.lo, e.hi, K) for (τ, (K, e)) in zip(E5_TAUS, p2)], "; ")))
+                              join([@sprintf("cap %d, τ = %.0e: %.3g [%.3g, %.3g] (K = %d)", Kc, τ, e.value, e.lo, e.hi, K)
+                                    for ((K, e, τ), Kc) in zip(p2all, repeat(E5_CAPS[2:end]; inner = length(E5_TAUS)))], "; ")))
         push!(rowsB, @sprintf("| %.2f T | P3 horizon, state | %s |", frac, fmt(p3)))
         push!(rowsB, @sprintf("| %.2f T | P4 horizon, measurement | %s |", frac, fmt(p4)))
         push!(rowsB, @sprintf("| %.2f T | smallest ESS over all runs | %.0f |", frac, minimum(e.ess for (_, e) in vcat(p2, p3, p4))))
         p0kl = p3[1][2].value                       # K = 1 is P0
         for f in (0.5, 0.25, 0.1)
             ε = f * p0kl
-            push!(rowsK, @sprintf("| %.2f T | %g | %.3g | %s | %s | %s |", frac, f, ε, mink(p2, ε), mink(p3, ε), mink(p4, ε)))
+            push!(rowsK, @sprintf("| %.2f T | %g | %.3g | %s | %s | %s | %s |", frac, f, ε, mink(p2best, ε), mink(p2worst, ε),
+                                  mink(p3, ε), mink(p4, ε)))
         end
     end
     fb = save_figure(figB, "e5_policies")
@@ -182,7 +198,7 @@ function e5_run()
     9:2 NRHO, prior 1 × (10 km, 10 cm/s) at apolune. One measurement from the Earth's centre, with
     σ = $(E5_RATIO) × its predicted linear standard deviation (for angles, of the wider axis). The
     exact posterior comes from N = 5×10⁵ importance-weighted prior samples. KL is averaged over
-    $(E5_M) measurement draws, with a 95% interval from their spread. A case is resolved if its
+    $(E5_M) measurement draws, with a 95% percentile-bootstrap interval of that mean. A case is resolved if its
     interval excludes zero and its smallest ESS is at least 100.
 
     **(a) Along the orbit.**

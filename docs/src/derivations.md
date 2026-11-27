@@ -133,6 +133,11 @@ but only because volume preservation fixes the part of ``C`` that matters.
 
 The cross terms between ``\xi`` and ``B(\xi,\xi)`` vanish because they are odd.
 
+**Why there is no O(ε³) term.** ``\operatorname{Cov}(\eta)`` has no ``O(\varepsilon^3)`` term. The
+candidates are products of ``B`` (degree 2 in ``\xi``) with ``C`` (degree 3), and of ``\xi`` (degree 1)
+with the fourth-order term (degree 4). Both are odd in ``\xi``, so their expectations vanish. The
+remainder is therefore ``O(\varepsilon^4)``.
+
 **Log-determinant.** With ``\tfrac12\ln\det(I + E) = \tfrac12\operatorname{tr}E + O(\varepsilon^4)``:
 
 ```math
@@ -179,7 +184,8 @@ g = \tfrac16\kappa_{abc}H_{abc} + O(\varepsilon^2),
 ```
 
 where ``H_{abc}`` are multivariate Hermite polynomials. Then
-``\mathrm{KL} = \tfrac12\mathbb E_\phi[g^2] + O(\varepsilon^4)``:
+``\mathrm{KL} = \int\phi(1+g)\ln(1+g) = \tfrac12\mathbb E_\phi[g^2] - \tfrac16\mathbb E_\phi[g^3] + \dots``, and
+``\mathrm{KL} = \tfrac12\mathbb E_\phi[g^2] + O(\varepsilon^4)`` because:
 
 - The ``O(\varepsilon^3)`` term ``\mathbb E_\phi[g^3]`` is the expectation of an odd polynomial,
   so it vanishes.
@@ -210,6 +216,46 @@ The two routes therefore check each other:
 - **For a map that does not preserve volume,** route 2 still holds. But
   ``\tfrac12\ln\det\Sigma_t - \tfrac12\ln\det P_0`` then differs from ``J`` by
   ``\mathbb E\ln|\det D\varphi|``.
+
+### Beyond leading order: the shear closure as a bound
+
+Experiment E3 found that the exact negentropy of the orbit problems follows
+``\tfrac12\ln(1 + 2J_\text{pred})`` far past leading order, where ``J_\text{pred}`` is the I4
+prediction. For a map that is exactly quadratic and volume-preserving, that is a rigorous
+lower bound.
+
+**Setup.** Let ``\eta = \xi + \tfrac12 B(\xi,\xi)`` exactly, with ``\det D\eta = 1`` for every ``\xi``.
+
+**The cross term vanishes.**
+- ``D\eta = I + N(\xi)`` with ``N(\xi)_{ab} = B_{abc}\xi_c``.
+- ``\det(I + tN(\xi)) = 1`` for every ``t`` (replace ``\xi`` by ``t\xi``). So every eigenvalue of
+  ``N(\xi)`` is zero: ``N(\xi)`` is nilpotent.
+- In particular ``\operatorname{tr}N(\xi)^2 = B_{abc}B_{bad}\xi_c\xi_d = 0`` for every ``\xi``. Setting
+  ``c = d`` and summing gives ``B_{abc}B_{bac} = 0``.
+- Hence ``J_\text{pred} = \tfrac14 B_{abc}B_{abc} = \tfrac14\operatorname{tr}M``, with ``M_{ad} = B_{abc}B_{dbc}``.
+
+**The exact covariance.** The odd moments of ``\xi`` vanish, and the Gaussian fourth moments give
+``\operatorname{Cov}(\eta) = I + \tfrac12 M`` exactly. By I2,
+``J = \tfrac12\ln\det(I + \tfrac12 M)``.
+
+**The bound.** ``M \succeq 0``. For ``D \succeq 0``, ``1 + \operatorname{tr}D \le \det(I + D) \le e^{\operatorname{tr}D}``. So
+
+```math
+\tfrac12\ln\!\big(1 + 2J_\text{pred}\big) \;\le\; J \;\le\; J_\text{pred},
+```
+
+with equality on the left exactly when ``M`` has rank one, that is, a quadratic shear along a
+single input direction. The T0 shear map is that case.
+
+**What it explains, and what it doesn't.**
+- On LEO the dominant nonlinearity is the curvature of the arc, ``r(1 - \delta\theta^2/2)`` with
+  ``\delta\theta`` Gaussian. That is very nearly a rank-one quadratic shear, which is why E3 finds
+  the closure to within 0.1% there.
+- On Molniya and the NRHO the exact value lies above the closure, as the bound predicts for a
+  higher-rank ``M``.
+- The orbit maps are not exactly quadratic, so the bound is an explanation there, not a theorem.
+
+(This bound was pointed out during an independent review of this repository.)
 
 ### Order of the error
 

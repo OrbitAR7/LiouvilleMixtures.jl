@@ -73,29 +73,67 @@ function e2_run()
     end
     # refit epochs of a schedule within (0, 3T]
     refit_times(Δ, φ) = filter(t -> 0 < t <= 3T, [φ + k * Δ for k in 0:ceil(Int, 3T / Δ)])
+
+    # Monte Carlo probability that a draw from the refitted Gaussian g passes below
+    # the lunar surface within the next interval h. The trajectory is sampled at
+    # 4000 points per revolution. A failed integration (passing through the
+    # point mass) counts as an impact. Wilson 95% interval.
+    function impact_probability(g, h; n = 4000, seed = E2_SEED)
+        X = sample_gaussian(Xoshiro(seed), collect(g.m[1]), Matrix(g.P[1]), n)
+        grid = collect(range(0, h; length = max(400, ceil(Int, 4000 * h / T))))
+        hit = falses(n)
+        Threads.@threads for j in 1:n
+            hit[j] = try
+                minimum(norm(u[1:3] - moon) for u in propagate_trajectory(nrho.model, X[:, j], grid)) < R_moon
+            catch
+                true
+            end
+        end
+        p = count(hit) / n
+        z = 1.96
+        c = (p + z^2 / (2n)) / (1 + z^2 / n)
+        w = z * sqrt(p * (1 - p) / n + z^2 / (4n^2)) / (1 + z^2 / n)
+        return (; p, lo = max(c - w, 0.0), hi = min(c + w, 1.0))
+    end
+    # impact probability at every refit of a schedule up to `upto`; returns (max, epoch of max, first epoch above 1%)
+    function impacts(pol, upto)
+        r = filter(t -> t < min(upto, 3T) + 1e-12 && t < 3T, refit_times(pol.Δ, pol.phase))
+        isempty(r) && return (nothing, NaN, NaN)
+        gs = propagate_policy(pol, nrho.model, prior, r)
+        ps = [impact_probability(g, min(pol.Δ, 3T - t); seed = E2_SEED + round(Int, 1000t)) for (g, t) in zip(gs, r)]
+        k = argmax([q.p for q in ps])
+        first_above = (i = findfirst(q -> q.p > 0.01, ps); i === nothing ? NaN : r[i])
+        return (ps[k], r[k], first_above)
+    end
     at(v, t) = v[argmin(abs.(ts .- t))]
     min_step(v, Δ, φ) = (r = refit_times(Δ, φ); minimum(diff(vcat(0.0, [at(v, t) for t in r]))))
 
-    rows = ["| schedule | refit rule | refits in 3 rev | volume at 3T [nats] | gain over exact at 3T [nats] | smallest step between refits [nats] |",
-            "|---|---|---|---|---|---|"]
+    rows = ["| schedule | refit rule | refits in 3 rev | volume at 3T [nats] | gain over exact at 3T [nats] | smallest step between refits [nats] | largest lunar-impact probability of a refitted Gaussian [95% CI] (refit epoch) |",
+            "|---|---|---|---|---|---|---|"]
+    impact_notes = String[]
     res = Dict{Tuple{Float64,Float64,Symbol},Vector{Float64}}()
     breakdowns = String[]
     for (Δ, φ, lab) in vcat([(Δ, Δ, l) for (Δ, l) in cadences], [(T, φ == 0 ? T : φ, l) for (φ, l) in phases[2:end]])
         for method in (:quadrature, :unscented)
-            v, last_ok, impact = run(ScheduledRefit(Δ; phase = φ, method))
+            pol = ScheduledRefit(Δ; phase = φ, method)
+            v, last_ok, impact = run(pol)
             res[(Δ, φ, method)] = v
             rule = method === :quadrature ? "exact (GH 5⁶)" : "cubature"
+            imp, t_imp, first_above = impacts(pol, isfinite(last_ok) ? last_ok : 3T)
+            impcol = imp === nothing ? "–" : @sprintf("%.3f [%.3f, %.3f] (%.3f T)", imp.p, imp.lo, imp.hi, t_imp / T)
+            flag = isnan(first_above) ? "" : " †"
+            isnan(first_above) || push!(impact_notes, @sprintf("%s, %s: the Gaussian refitted at %.3f T is the first with more than 1%% lunar-impact probability; the largest is %.3f [%.3f, %.3f] at %.3f T.",
+                                                               lab, rule, first_above / T, imp.p, imp.lo, imp.hi, t_imp / T))
             if isfinite(last_ok)
                 good = .!isnan.(v)
                 rt = filter(<=(last_ok), refit_times(Δ, φ))
                 vr = [v[argmin(abs.(ts .- t))] for t in rt]
-                push!(rows, @sprintf("| %s | %s | %d | breaks down after %.2f T | – | %.3g |", lab, rule,
-                                     length(rt), last_ok / T, minimum(diff(vcat(0.0, vr)))))
-                push!(breakdowns, @sprintf("%s, %s: the Gaussian refitted at t = %.2f T has %.2g of its quadrature weight on trajectories that pass below the lunar surface within the next interval.",
-                                           lab, rule, last_ok / T, impact))
+                push!(rows, @sprintf("| %s | %s | %d | breaks down after %.2f T | – | %.3g | %s |", lab, rule,
+                                     length(rt), last_ok / T, minimum(diff(vcat(0.0, vr))), impcol))
+                push!(breakdowns, @sprintf("%s, %s: integration fails in the interval after the refit at %.2f T.", lab, rule, last_ok / T))
             else
-                push!(rows, @sprintf("| %s | %s | %d | %.4g | %.4g | %.3g |", lab, rule,
-                                     length(refit_times(Δ, φ)), v[end], v[end] - exact[end], min_step(v, Δ, φ)))
+                push!(rows, @sprintf("| %s | %s | %d | %.4g%s | %.4g | %.3g | %s |", lab, rule,
+                                     length(refit_times(Δ, φ)), v[end], flag, v[end] - exact[end], min_step(v, Δ, φ), impcol))
             end
         end
     end
@@ -107,10 +145,10 @@ function e2_run()
     conv = isfinite(last7) ?
         @sprintf("""**Convergence.** One refit per revolution at perilune, rerun with the 7⁶ rule: the first
         refit (t = 0.5 T) agrees with the 5⁶ rule (%.4f against %.4f nats). It then breaks down after
-        t = %.2f T, because its outermost nodes reach further and fall into the Moon (%.2g of its weight).
+        t = %.2f T, because its outermost nodes reach further and fall into the Moon.
         So every volume after the first perilune refit is not converged, and the totals of 48 to 56
         nats in the table are indicative only. The first step, which equals J at perilune, is robust.""",
-                 worst[k1], v5[k1], last7 / T, impact7) :
+                 worst[k1], v5[k1], last7 / T) :
         @sprintf("**Convergence.** One refit per revolution at perilune, 7⁶ rule: volume at 3T = %.4g nats (5⁶ rule: %.4g).",
                  worst[end], v5[end])
 
@@ -155,10 +193,17 @@ function e2_run()
 
     $conv
 
-    **Breakdowns.** Refitting at a perilune can put probability on trajectories that hit the
-    Moon. The point-mass model then has no surface to stop them, and integration fails as r → 0.
-    The true pushforward has no such mass. The exact-refit curves for these schedules stop at the
-    last refit that propagated.
+    **Lunar impacts.** The impact column is a Monte Carlo probability: 4000 draws from each
+    refitted Gaussian, flown over the next refit interval, counting those that pass below the
+    lunar surface (1737.4 km). The true pushforward has no such mass. † marks a schedule whose
+    later refits are not physical: some refitted Gaussian in it has more than 1% probability of
+    passing through the Moon. Its final volume should be read as indicative only.
+
+    $(isempty(impact_notes) ? "No refitted Gaussian exceeds 1%." : join("- " .* impact_notes, "\n"))
+
+    **Breakdowns.** For some schedules, a refitted Gaussian's quadrature nodes fall into the
+    point-mass Moon, and integration fails. Those exact-refit curves stop at the last refit that
+    propagated:
 
     $(isempty(breakdowns) ? "None." : join("- " .* breakdowns, "\n"))
 

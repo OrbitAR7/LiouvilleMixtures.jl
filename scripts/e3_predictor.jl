@@ -102,6 +102,7 @@ function e3_run()
                                c[argmax(abs.(c .- 1))]))
     end
     shear_dev(name, jmax) = maximum(abs(q[2] * q[1] / shear(q[1]) - 1) for q in per_problem[name] if q[1] < jmax)
+    shear_ratio(name, jmax) = extrema(q[2] * q[1] / shear(q[1]) for q in per_problem[name] if 0.01 < q[1] < jmax)
 
     body = """
     Predicted against exact negentropy over every problem, output time and prior size. Times:
@@ -119,9 +120,15 @@ function e3_run()
 
     Largest deviation of the exact J from the shear closure ½ ln(1 + 2 J_pred):
 
-    | problem | over J_pred < 1 nat | over J_pred < 10 nats |
-    |---|---|---|
-    $(join([@sprintf("| %s | %.1f%% | %.1f%% |", c[2], 100 * shear_dev(c[2], 1.0), 100 * shear_dev(c[2], 10.0)) for c in cases], "\n"))
+    | problem | over J_pred < 1 nat | over J_pred < 10 nats | exact / closure, min – max (0.01 < J_pred < 10) |
+    |---|---|---|---|
+    $(join([@sprintf("| %s | %.1f%% | %.1f%% | %.4f – %.4f |", c[2], 100 * shear_dev(c[2], 1.0), 100 * shear_dev(c[2], 10.0),
+                     shear_ratio(c[2], 10.0)...) for c in cases], "\n"))
+
+    For an exactly quadratic, volume-preserving map the closure is a lower bound,
+    ½ ln(1 + 2 J_pred) ≤ J ≤ J_pred, with equality on the left when the nonlinearity has rank one
+    (derivation in docs/src/derivations.md). So exact / closure ≥ 1 is expected wherever the map is
+    close to quadratic.
 
     ![E3 predictor]($f)
 
@@ -131,8 +138,9 @@ function e3_run()
     predictor is within 10% up to a predicted J of about 0.1 nats. Beyond that the points follow
     the shear curve: the true negentropy behaves like ½ ln(1 + 2 J_pred), far past leading order.
     On LEO this holds to 0.1% up to 10 nats, where the nonlinearity is the curvature of the arc, a
-    quadratic shear like T0's. On Molniya and the NRHO it holds to about 12% up to 1 nat and
-    departs beyond. This is an empirical observation, not a derived result. Diamonds are paired
+    rank-one quadratic shear like T0's. On Molniya and the NRHO it holds to about 12% up to 1 nat,
+    and beyond that the exact value lies above the closure. That matches the derived lower bound for
+    quadratic volume-preserving maps. Diamonds are paired
     Monte Carlo with 95% intervals.*
     """
     record!("E3", "negentropy predictor against the exact negentropy", body; seed = E3_SEED, runtime = time() - t_start)
