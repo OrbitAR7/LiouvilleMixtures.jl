@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/OrbitAR7/LiouvilleMixtures.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/OrbitAR7/LiouvilleMixtures.jl/actions/workflows/CI.yml)
 
-**Status: in development.** The dynamics, transition tensors, entropy/KL tools, the leading-order negentropy predictor ([derivations](docs/src/derivations.md)) and six propagation policies are implemented and tested. The study experiments are not yet run.
+**Status: in development.** The dynamics, transition tensors, entropy/KL tools, the leading-order negentropy predictor ([derivations](docs/src/derivations.md)), six propagation policies and a Gaussian-sum measurement update are implemented and tested. All six experiments have been run (see below); the write-up is in progress.
 
 ## Problems
 
@@ -37,7 +37,7 @@ Julia 1.10 (LTS) or later. On 1.10, install the pinned git dependencies first:
 julia --project=. .github/install_sources.jl Project.toml
 ```
 
-Regenerate every figure and `results/summary.md` (about 13 minutes with 10 threads):
+Regenerate every figure and `results/summary.md` (about 21 minutes with 10 threads):
 
 ```bash
 julia --project=scripts -e 'using Pkg; Pkg.instantiate()'

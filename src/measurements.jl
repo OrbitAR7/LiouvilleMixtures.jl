@@ -32,6 +32,27 @@ struct RangeRangeRate <: MeasurementModel
 end
 
 """
+    Range(origin, σ)
+
+Range `|r - origin|` alone, with standard deviation `σ` in the model's length unit.
+"""
+struct Range <: MeasurementModel
+    origin::SVector{3,Float64}
+    σ::Float64
+end
+
+"""
+    RangeRate(origin, σ)
+
+Range-rate `(r - origin)·v / |r - origin|` alone, with standard deviation `σ` in
+the model's speed unit.
+"""
+struct RangeRate <: MeasurementModel
+    origin::SVector{3,Float64}
+    σ::Float64
+end
+
+"""
     Angles(origin, σ)
 
 Azimuth `atan(Δy, Δx)` and elevation `asin(Δz / |Δr|)` of `Δr = r - origin`,
@@ -60,6 +81,9 @@ function measure(m::RangeRangeRate, x::AbstractVector)
     return SVector(ρ, (d[1] * x[4] + d[2] * x[5] + d[3] * x[6]) / ρ)
 end
 
+measure(m::Range, x::AbstractVector) = SVector(measure(RangeRangeRate(m.origin, 1.0, 1.0), x)[1])
+measure(m::RangeRate, x::AbstractVector) = SVector(measure(RangeRangeRate(m.origin, 1.0, 1.0), x)[2])
+
 function measure(m::Angles, x::AbstractVector)
     d = SVector(x[1] - m.origin[1], x[2] - m.origin[2], x[3] - m.origin[3])
     ρ = sqrt(d[1]^2 + d[2]^2 + d[3]^2)
@@ -73,6 +97,7 @@ Noise covariance `R`.
 """
 measurement_cov(m::RangeRangeRate) = SMatrix{2,2,Float64}(m.σρ^2, 0, 0, m.σρ̇^2)
 measurement_cov(m::Angles) = SMatrix{2,2,Float64}(m.σ^2, 0, 0, m.σ^2)
+measurement_cov(m::Union{Range,RangeRate}) = SMatrix{1,1,Float64}(m.σ^2)
 
 """
     measurement_jacobian(meas, x) -> Matrix

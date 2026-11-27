@@ -33,12 +33,12 @@ import EstimationToolkit
 using EstimationToolkit: split_gaussian
 using PrecompileTools: @setup_workload, @compile_workload
 
-export DynamicsModel, TwoBody, J2Gravity, CR3BP
+export DynamicsModel, TwoBody, J2Gravity, CR3BP, ExponentialDrag, atmospheric_density, flow_divergence
 export vector_field, potential, state_jacobian, state_hessian
 export symplectic_form, canonical_transform
 export TransitionTensors, propagate_tensors, propagate_state, propagate_trajectory, symplectic_residual, symplectic_inverse
 export cartesian_to_equinoctial, equinoctial_to_cartesian, equinoctial_logdetjac, unwrap_angle
-export TestProblem, t1_leo, t1_molniya, t2_nrho, nrho_9_2
+export TestProblem, t1_leo, t1_molniya, t2_nrho, nrho_9_2, t3_leo_drag
 export shear_map, shear_logpdf, t0_negentropy, t0_negentropy_leading, t0_kl_to_prior
 export gaussian_entropy, gaussian_logpdf, sample_gaussian, sample_mean_cov, logdet_sample_cov, logdet_quadrature_cov
 export negentropy_from_covariance, MCEstimate, bootstrap, mean_estimate
@@ -49,9 +49,10 @@ export volume_trace, predicted_negentropy
 export measurement_tensors, measurement_negentropy, max_nonlinearity_direction
 export GaussianMixture, ncomponents, mixture_mean_cov, mixture_logpdf
 export split_component, merge_components, merge_cost
-export MeasurementModel, RangeRangeRate, Angles, measure, measurement_cov
+export MeasurementModel, RangeRangeRate, Range, RangeRate, Angles, measure, measurement_cov
 export measurement_jacobian, measurement_hessian
 export Policy, LinearPropagation, ScheduledRefit, EntropyTrigger, HorizonSplit, propagate_policy
+export residual, measurement_update, measurement_loglik, posterior_kl
 
 include("dynamics.jl")
 include("tensors.jl")
@@ -63,6 +64,7 @@ include("measurements.jl")
 include("predictor.jl")
 include("mixtures.jl")
 include("policies.jl")
+include("update.jl")
 include("precompile.jl")
 
 end # module

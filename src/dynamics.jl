@@ -68,6 +68,39 @@ end
 CR3BP() = CR3BP(EARTH_MOON)
 
 """
+    ExponentialDrag(; μ = GM_EARTH, R = R_EARTH, ρ0, h0, H, β)
+
+Point-mass gravity plus drag in an exponential atmosphere, with the atmosphere
+not rotating:
+
+    r̈ = -μ r/|r|³ - β ρ(|r|) |v| v,    ρ(|r|) = ρ0 exp(-(|r| - R - h0)/H).
+
+- State: inertial Cartesian, in km and km/s.
+- `ρ0` is the density [kg/m³] at altitude `h0` [km]. `H` is the scale height [km].
+- `β = C_D A / (2m)` [m²/kg].
+- The factor 10³ that converts β ρ from 1/m to 1/km is applied inside.
+
+The flow does not preserve volume: `∇·f = -4 × 10³ β ρ |v|` < 0 (see
+[`flow_divergence`](@ref)). That is the non-conservative case of identity I2.
+"""
+struct ExponentialDrag{T<:Real} <: DynamicsModel
+    μ::T
+    R::T
+    ρ0::T
+    h0::T
+    H::T
+    β::T
+end
+ExponentialDrag(; μ = GM_EARTH, R = R_EARTH, ρ0, h0, H, β) = ExponentialDrag(promote(μ, R, ρ0, h0, H, β)...)
+
+"""
+    atmospheric_density(model::ExponentialDrag, r)
+
+Density [kg/m³] at geocentric distance `r` [km].
+"""
+atmospheric_density(m::ExponentialDrag, r::Real) = m.ρ0 * exp(-(r - m.R - m.h0) / m.H)
+
+"""
     vector_field(model, x) -> SVector{6}
 
 Time derivative `f(x)` of the state `x = [r; v]`. Units and frame are those of
@@ -98,6 +131,15 @@ end
 end
 
 @inline vector_field(m::CR3BP, x::SVector{6}) = cr3bp_eom(x, m.system.μ)
+
+@inline function vector_field(m::ExponentialDrag, x::SVector{6})
+    r = SVector(x[1], x[2], x[3])
+    v = SVector(x[4], x[5], x[6])
+    rn = sqrt(dot(r, r))
+    k = 1e3 * m.β * atmospheric_density(m, rn) * sqrt(dot(v, v))     # 1/s
+    a = -m.μ * r / rn^3 - k * v
+    return SVector(v[1], v[2], v[3], a[1], a[2], a[3])
+end
 
 vector_field(m::DynamicsModel, x::AbstractVector) = vector_field(m, SVector{6}(x))
 
@@ -219,3 +261,13 @@ function canonical_transform(::CR3BP)
     E = SMatrix{3,3,Float64}(I)
     return [E Z; W E]
 end
+
+"""
+    flow_divergence(model, x)
+
+`∇·f = tr ∂f/∂x` at `x` [1/time unit]. It is zero for the conservative models,
+and `-4 × 10³ β ρ |v|` for [`ExponentialDrag`](@ref). Along a trajectory,
+`d/dt ln det Φ = ∇·f`, and the entropy of the propagated density changes at the
+rate `E[∇·f]`.
+"""
+flow_divergence(m::DynamicsModel, x::AbstractVector) = tr(state_jacobian(m, SVector{6}(x)))

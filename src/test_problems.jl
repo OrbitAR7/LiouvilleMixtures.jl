@@ -136,3 +136,24 @@ prediction, since `Dφ(0) = I`. Value: `3c²σ1⁴ / (2σ2²)`. Derivation:
                                  = 3c²σ1⁴ / (2σ2²)
 """
 t0_kl_to_prior(c::Real, σ1::Real, σ2::Real) = 3c^2 * σ1^4 / (2σ2^2)
+
+"""
+    t3_leo_drag(; β = 0.011, ρ0 = 3.725e-12, H = 58.515)
+
+T3: a circular LEO at 400 km altitude (i = 51.6°, starting on the ascending
+node) with drag in an exponential atmosphere.
+
+- The atmosphere is referenced to 400 km: `ρ0` [kg/m³] and the scale height `H`
+  [km] are illustrative values for that altitude.
+- The default `β = C_D A/(2m) = 0.011 m²/kg` corresponds to C_D = 2.2 and
+  A/m = 0.01 m²/kg.
+- The period is the Keplerian one, at the initial radius.
+"""
+function t3_leo_drag(; β::Real = 0.011, ρ0::Real = 3.725e-12, H::Real = 58.515)
+    m = ExponentialDrag(; ρ0, h0 = 400.0, H, β)
+    a = R_EARTH + 400.0
+    s = keplerian_to_cartesian(KeplerianElements(a, 0.0, deg2rad(51.6), 0.0, 0.0, 0.0); μ = m.μ)
+    v = sqrt(m.μ / a)
+    return TestProblem("T3 LEO 400 km with drag", m, SVector{6}(s.r..., s.v...), 2π * sqrt(a^3 / m.μ),
+                       SVector(a, a, a, v, v, v))
+end

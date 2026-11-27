@@ -7,6 +7,9 @@ DynamicsModel
 TwoBody
 J2Gravity
 CR3BP
+ExponentialDrag
+atmospheric_density
+flow_divergence
 vector_field
 potential
 state_jacobian
@@ -34,6 +37,7 @@ t1_leo
 t1_molniya
 nrho_9_2
 t2_nrho
+t3_leo_drag
 ```
 
 ## Entropy, negentropy and KL divergence
@@ -112,6 +116,8 @@ merge_cost
 ```@docs
 MeasurementModel
 RangeRangeRate
+Range
+RangeRate
 Angles
 measure
 measurement_cov
@@ -128,4 +134,13 @@ ScheduledRefit
 EntropyTrigger
 HorizonSplit
 propagate_policy
+```
+
+## Measurement update and posterior accuracy
+
+```@docs
+residual
+measurement_update
+measurement_loglik
+posterior_kl
 ```

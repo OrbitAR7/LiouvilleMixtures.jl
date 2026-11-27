@@ -5,7 +5,8 @@
 #
 # Each experiment script can also be run on its own.
 
-const SCRIPTS = ["e1_reversibility.jl", "e2_ratchet.jl", "e3_predictor.jl", "e4_accuracy.jl"]
+const SCRIPTS = ["e1_reversibility.jl", "e2_ratchet.jl", "e3_predictor.jl", "e4_accuracy.jl",
+                 "e5_posterior.jl", "e6_drag.jl"]
 
 for s in SCRIPTS
     @info "running $s"
